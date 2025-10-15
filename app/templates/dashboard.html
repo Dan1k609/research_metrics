@@ -1,0 +1,94 @@
+<!-- app/templates/dashboard.html -->
+{% extends "base.html" %}
+{% block title %}Дашборд{% endblock %}
+
+{% block content %}
+<h2>Дашборд: Научная активность вуза</h2>
+
+<div style="display:flex;flex-wrap:wrap;gap:26px;margin-bottom:28px;">
+    <div class="profile-card" style="flex:1;">
+        <b>Преподавателей:</b> {{ lecturers|length }}
+    </div>
+    <div class="profile-card" style="flex:1;">
+        <b>Публикаций:</b> {{ pubs|length }}
+    </div>
+    <div class="profile-card" style="flex:1;">
+        <b>Цитирований:</b>
+        {{
+            pubs|map(attribute='citations')|map('int')|sum
+        }}
+    </div>
+</div>
+
+<h3>Последние преподаватели</h3>
+<table>
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Кафедра</th>
+            <th>Должность</th>
+            <th>Последняя метрика</th>
+            <th>Профиль</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for l in lecturers[:5] %}
+        <tr>
+            <td>{{ l['fio'] }}</td>
+            <td>{{ l['department'] }}</td>
+            <td>{{ l['position'] }}</td>
+            <td>
+                {% set m = metrics.get(l['id']) %}
+                {% if m %}
+                    {{ m['year'] }}: {{ m['total_publications'] }} публ., h-индекс {{ m['h_index'] }}
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+            <td><a href="{{ url_for('main.lecturer_profile', lecturer_id=l['id']) }}">Открыть</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h3>Последние публикации</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Год</th>
+            <th>Название</th>
+            <th>Журнал</th>
+            <th>Авторы</th>
+            <th>Ссылка</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for pub in pubs[:5] %}
+        <tr>
+            <td>{{ pub['year'] }}</td>
+            <td>{{ pub['title'] }}</td>
+            <td>{{ pub['journal'] }}</td>
+            <td>
+                {# Список авторов публикации #}
+                {% set authors = [] %}
+                {% for lecturer in lecturers %}
+                    {% for lp in get_publications_by_lecturer(lecturer['id']) %}
+                        {% if lp['id'] == pub['id'] %}
+                            {% set _ = authors.append('<a href="' ~ url_for('main.lecturer_profile', lecturer_id=lecturer['id']) ~ '">' ~ lecturer['fio'] ~ '</a>') %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                {{ authors|join(', ')|safe }}
+            </td>
+            <td>
+                {% if pub['link'] %}
+                    <a href="{{ pub['link'] }}" target="_blank">Открыть</a>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

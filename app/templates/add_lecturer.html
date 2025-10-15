@@ -1,0 +1,29 @@
+<!-- app/templates/add_lecturer.html -->
+{% extends "base.html" %}
+{% block title %}Добавить преподавателя{% endblock %}
+
+{% block content %}
+<h2>Добавить преподавателя</h2>
+<form method="post" autocomplete="off">
+    <label for="fio">ФИО *</label>
+    <input type="text" name="fio" id="fio" required>
+
+    <label for="position">Должность *</label>
+    <input type="text" name="position" id="position" required placeholder="Например: доцент">
+
+    <label for="department">Кафедра *</label>
+    <input type="text" name="department" id="department" required>
+
+    <label for="academic_degree">Учёная степень</label>
+    <input type="text" name="academic_degree" id="academic_degree" placeholder="Например: к.т.н., д.ф.-м.н.">
+
+    <label for="orcid">ORCID</label>
+    <input type="text" name="orcid" id="orcid" placeholder="0000-0000-0000-0000">
+
+    <label for="email">E-mail</label>
+    <input type="email" name="email" id="email" placeholder="example@university.ru">
+
+    <input type="submit" value="Добавить преподавателя">
+</form>
+<a href="{{ url_for('main.lecturers') }}">← К списку преподавателей</a>
+{% endblock %}

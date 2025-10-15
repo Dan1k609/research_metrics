@@ -1,0 +1,16 @@
+<!-- app/templates/login.html -->
+{% extends "base.html" %}
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+<h2>Вход в систему</h2>
+<form method="post" autocomplete="off" style="max-width:350px;">
+    <label for="email">E-mail</label>
+    <input type="email" name="email" id="email" required autofocus>
+
+    <label for="password">Пароль</label>
+    <input type="password" name="password" id="password" required>
+
+    <input type="submit" value="Войти">
+</form>
+{% endblock %}

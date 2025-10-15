@@ -1,0 +1,40 @@
+<!-- app/templates/add_publication.html -->
+{% extends "base.html" %}
+{% block title %}Добавить публикацию{% endblock %}
+
+{% block content %}
+<h2>Добавить публикацию</h2>
+<form method="post" autocomplete="off">
+    <label for="title">Название публикации *</label>
+    <input type="text" name="title" id="title" required>
+
+    <label for="year">Год *</label>
+    <input type="number" name="year" id="year" min="1900" max="2100" required>
+
+    <label for="journal">Журнал / издание *</label>
+    <input type="text" name="journal" id="journal" required>
+
+    <label for="source">Источник (РИНЦ, Scopus, WoS, др.)</label>
+    <input type="text" name="source" id="source" placeholder="Например: РИНЦ">
+
+    <label for="link">Ссылка на публикацию</label>
+    <input type="text" name="link" id="link" placeholder="https://...">
+
+    <label for="citations">Цитирования</label>
+    <input type="number" name="citations" id="citations" min="0" value="0">
+
+    <label for="doi">DOI / Идентификатор</label>
+    <input type="text" name="doi" id="doi">
+
+    <label for="lecturer_ids">Авторы публикации *</label>
+    <select name="lecturer_ids" id="lecturer_ids" multiple size="5" required>
+        {% for lecturer in lecturers %}
+        <option value="{{ lecturer['id'] }}">{{ lecturer['fio'] }} — {{ lecturer['department'] }}</option>
+        {% endfor %}
+    </select>
+    <div style="font-size:0.95em;color:#555;">Для множественного выбора зажмите Ctrl (или Cmd на Mac).</div>
+
+    <input type="submit" value="Добавить публикацию">
+</form>
+<a href="{{ url_for('main.publications') }}">← К списку публикаций</a>
+{% endblock %}

@@ -1,0 +1,79 @@
+<!-- app/templates/reports.html -->
+{% extends "base.html" %}
+{% block title %}Отчёты по научной деятельности{% endblock %}
+
+{% block content %}
+<h2>Отчёты по научной деятельности</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Кафедра</th>
+            <th>Кол-во преподавателей</th>
+            <th>Публикаций</th>
+            <th>Цитирований</th>
+            <th>Преподаватели</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for department, data in departments.items() %}
+        <tr>
+            <td>{{ department }}</td>
+            <td>{{ data['lecturers']|length }}</td>
+            <td>{{ data['publications'] }}</td>
+            <td>{{ data['citations'] }}</td>
+            <td>
+                {% for l in data['lecturers'] %}
+                    <a href="{{ url_for('main.lecturer_profile', lecturer_id=l['id']) }}">{{ l['fio'] }}</a>{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h3>Список всех публикаций</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Год</th>
+            <th>Название</th>
+            <th>Журнал</th>
+            <th>Авторы</th>
+            <th>Источник</th>
+            <th>Цитирования</th>
+            <th>Ссылка</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for pub in pubs %}
+        <tr>
+            <td>{{ pub['year'] }}</td>
+            <td>{{ pub['title'] }}</td>
+            <td>{{ pub['journal'] }}</td>
+            <td>
+                {# Для каждого автора публикации — ссылка на профиль #}
+                {% set authors = [] %}
+                {% for lecturer in get_all_lecturers() %}
+                    {% for lp in get_publications_by_lecturer(lecturer['id']) %}
+                        {% if lp['id'] == pub['id'] %}
+                            {% set _ = authors.append('<a href="' ~ url_for('main.lecturer_profile', lecturer_id=lecturer['id']) ~ '">' ~ lecturer['fio'] ~ '</a>') %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                {{ authors|join(', ')|safe }}
+            </td>
+            <td>{{ pub['source'] }}</td>
+            <td>{{ pub['citations']|default(0) }}</td>
+            <td>
+                {% if pub['link'] %}
+                    <a href="{{ pub['link'] }}" target="_blank">Открыть</a>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

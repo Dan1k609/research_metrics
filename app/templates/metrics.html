@@ -1,0 +1,71 @@
+<!-- app/templates/metrics.html -->
+{% extends "base.html" %}
+{% block title %}Наукометрические метрики{% endblock %}
+
+{% block content %}
+<h2>Наукометрические метрики: {{ lecturer['fio'] }}</h2>
+
+<form method="post" autocomplete="off" style="max-width:520px;">
+    <label for="year">Год *</label>
+    <input type="number" name="year" id="year" required min="2000" max="2100" value="{{ metrics[0]['year'] if metrics else '' }}">
+
+    <label for="total_publications">Всего публикаций *</label>
+    <input type="number" name="total_publications" id="total_publications" required min="0" value="{{ metrics[0]['total_publications'] if metrics else '0' }}">
+
+    <label for="total_citations">Всего цитирований *</label>
+    <input type="number" name="total_citations" id="total_citations" required min="0" value="{{ metrics[0]['total_citations'] if metrics else '0' }}">
+
+    <label for="h_index">h-индекс *</label>
+    <input type="number" name="h_index" id="h_index" required min="0" value="{{ metrics[0]['h_index'] if metrics else '0' }}">
+
+    <label for="rinz">Публикаций в РИНЦ</label>
+    <input type="number" name="rinz" id="rinz" min="0" value="{{ metrics[0]['rinz'] if metrics else '0' }}">
+
+    <label for="scopus">Публикаций в Scopus</label>
+    <input type="number" name="scopus" id="scopus" min="0" value="{{ metrics[0]['scopus'] if metrics else '0' }}">
+
+    <label for="wos">Публикаций в WoS</label>
+    <input type="number" name="wos" id="wos" min="0" value="{{ metrics[0]['wos'] if metrics else '0' }}">
+
+    <label for="gs">Публикаций в Google Scholar</label>
+    <input type="number" name="gs" id="gs" min="0" value="{{ metrics[0]['gs'] if metrics else '0' }}">
+
+    <input type="submit" value="Сохранить метрики">
+</form>
+
+<h3>История метрик по годам</h3>
+{% if metrics %}
+    <table>
+        <thead>
+            <tr>
+                <th>Год</th>
+                <th>Публикаций</th>
+                <th>Цитирований</th>
+                <th>h-индекс</th>
+                <th>РИНЦ</th>
+                <th>Scopus</th>
+                <th>WoS</th>
+                <th>Google Scholar</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for m in metrics %}
+            <tr>
+                <td>{{ m['year'] }}</td>
+                <td>{{ m['total_publications'] }}</td>
+                <td>{{ m['total_citations'] }}</td>
+                <td>{{ m['h_index'] }}</td>
+                <td>{{ m['rinz'] }}</td>
+                <td>{{ m['scopus'] }}</td>
+                <td>{{ m['wos'] }}</td>
+                <td>{{ m['gs'] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div>Метрики не заданы.</div>
+{% endif %}
+
+<a href="{{ url_for('main.lecturer_profile', lecturer_id=lecturer['id']) }}">← К профилю преподавателя</a>
+{% endblock %}

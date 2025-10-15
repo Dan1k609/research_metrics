@@ -1,0 +1,43 @@
+<!-- app/templates/edit_publication.html -->
+{% extends "base.html" %}
+{% block title %}Редактировать публикацию{% endblock %}
+
+{% block content %}
+<h2>Редактировать публикацию</h2>
+<form method="post" autocomplete="off">
+    <label for="title">Название публикации *</label>
+    <input type="text" name="title" id="title" value="{{ pub['title'] }}" required>
+
+    <label for="year">Год *</label>
+    <input type="number" name="year" id="year" min="1900" max="2100" value="{{ pub['year'] }}" required>
+
+    <label for="journal">Журнал / издание *</label>
+    <input type="text" name="journal" id="journal" value="{{ pub['journal'] }}" required>
+
+    <label for="source">Источник (РИНЦ, Scopus, WoS, др.)</label>
+    <input type="text" name="source" id="source" value="{{ pub['source'] }}">
+
+    <label for="link">Ссылка на публикацию</label>
+    <input type="text" name="link" id="link" value="{{ pub['link'] }}">
+
+    <label for="citations">Цитирования</label>
+    <input type="number" name="citations" id="citations" min="0" value="{{ pub['citations'] }}">
+
+    <label for="doi">DOI / Идентификатор</label>
+    <input type="text" name="doi" id="doi" value="{{ pub['doi'] }}">
+
+    <label for="lecturer_ids">Авторы публикации *</label>
+    <select name="lecturer_ids" id="lecturer_ids" multiple size="5" required>
+        {% for lecturer in lecturers %}
+        <option value="{{ lecturer['id'] }}"
+            {% if lecturer['id'] in current_ids %}selected{% endif %}>
+            {{ lecturer['fio'] }} — {{ lecturer['department'] }}
+        </option>
+        {% endfor %}
+    </select>
+    <div style="font-size:0.95em;color:#555;">Для множественного выбора зажмите Ctrl (или Cmd на Mac).</div>
+
+    <input type="submit" value="Сохранить изменения">
+</form>
+<a href="{{ url_for('main.publications') }}">← К списку публикаций</a>
+{% endblock %}

@@ -1,0 +1,42 @@
+<!-- app/templates/base.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Научные публикации преподавателей{% endblock %}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Автоматизация учёта научных публикаций</h1>
+        <div style="font-size:1.1em;margin-top:5px;">
+            <b>ЧОУ ВО «Московский университет им. С.Ю. Витте»</b>
+        </div>
+    </div>
+
+    {% if g.user %}
+    <nav>
+        <a href="{{ url_for('main.dashboard') }}">Дашборд</a>
+        <a href="{{ url_for('main.lecturers') }}">Преподаватели</a>
+        <a href="{{ url_for('main.publications') }}">Публикации</a>
+        <a href="{{ url_for('main.reports') }}">Отчёты</a>
+        {% if g.user['role'] == 'admin' %}
+            <a href="{{ url_for('main.log') }}">Журнал действий</a>
+        {% endif %}
+        <span style="margin-left:25px;color:#2067b2;">
+            {{ g.user['fio']|default('Пользователь') }} ({{ g.user['role']|default('') }})
+        </span>
+        <a href="{{ url_for('main.logout') }}" style="margin-left:auto;color:#b21f1f;">Выйти</a>
+    </nav>
+    {% endif %}
+
+    <div class="container">
+        {% for message in get_flashed_messages() %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

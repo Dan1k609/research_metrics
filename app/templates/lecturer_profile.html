@@ -1,0 +1,92 @@
+<!-- app/templates/lecturer_profile.html -->
+{% extends "base.html" %}
+{% block title %}Профиль преподавателя{% endblock %}
+
+{% block content %}
+<h2>Профиль преподавателя</h2>
+
+<div class="profile-card">
+    <b>{{ lecturer['fio'] }}</b><br>
+    <span>{{ lecturer['position'] }}</span><br>
+    <span>Кафедра: {{ lecturer['department'] }}</span><br>
+    {% if lecturer['academic_degree'] %}<span>Учёная степень: {{ lecturer['academic_degree'] }}</span><br>{% endif %}
+    {% if lecturer['orcid'] %}<span>ORCID: {{ lecturer['orcid'] }}</span><br>{% endif %}
+    {% if lecturer['email'] %}<span>Email: {{ lecturer['email'] }}</span><br>{% endif %}
+</div>
+
+<h3>Публикации</h3>
+{% if pubs %}
+    <table>
+        <thead>
+            <tr>
+                <th>Год</th>
+                <th>Название</th>
+                <th>Журнал</th>
+                <th>Источник</th>
+                <th>Цитирования</th>
+                <th>Ссылка</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for pub in pubs %}
+            <tr>
+                <td>{{ pub['year'] }}</td>
+                <td>{{ pub['title'] }}</td>
+                <td>{{ pub['journal'] }}</td>
+                <td>{{ pub['source'] }}</td>
+                <td>{{ pub['citations']|default(0) }}</td>
+                <td>
+                    {% if pub['link'] %}
+                        <a href="{{ pub['link'] }}" target="_blank">Открыть</a>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div>Публикации отсутствуют.</div>
+{% endif %}
+
+<h3>Наукометрические метрики</h3>
+{% if metrics %}
+    <table>
+        <thead>
+            <tr>
+                <th>Год</th>
+                <th>Публикаций</th>
+                <th>Цитирований</th>
+                <th>h-индекс</th>
+                <th>РИНЦ</th>
+                <th>Scopus</th>
+                <th>WoS</th>
+                <th>Google Scholar</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for m in metrics %}
+            <tr>
+                <td>{{ m['year'] }}</td>
+                <td>{{ m['total_publications'] }}</td>
+                <td>{{ m['total_citations'] }}</td>
+                <td>{{ m['h_index'] }}</td>
+                <td>{{ m['rinz'] }}</td>
+                <td>{{ m['scopus'] }}</td>
+                <td>{{ m['wos'] }}</td>
+                <td>{{ m['gs'] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div>Метрики не заданы.</div>
+{% endif %}
+
+{% if g.user and g.user['role'] == 'admin' %}
+    <a href="{{ url_for('main.metrics', lecturer_id=lecturer['id']) }}" style="margin-right:12px;">Редактировать метрики</a>
+    <a href="{{ url_for('main.edit_lecturer', lecturer_id=lecturer['id']) }}" style="margin-right:12px;">Редактировать профиль</a>
+{% endif %}
+<a href="{{ url_for('main.lecturers') }}">← К списку преподавателей</a>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!-- app/templates/edit_lecturer.html -->
+{% extends "base.html" %}
+{% block title %}Редактировать преподавателя{% endblock %}
+
+{% block content %}
+<h2>Редактировать преподавателя</h2>
+<form method="post" autocomplete="off">
+    <label for="fio">ФИО *</label>
+    <input type="text" name="fio" id="fio" value="{{ lecturer['fio'] }}" required>
+
+    <label for="position">Должность *</label>
+    <input type="text" name="position" id="position" value="{{ lecturer['position'] }}" required>
+
+    <label for="department">Кафедра *</label>
+    <input type="text" name="department" id="department" value="{{ lecturer['department'] }}" required>
+
+    <label for="academic_degree">Учёная степень</label>
+    <input type="text" name="academic_degree" id="academic_degree" value="{{ lecturer['academic_degree'] }}">
+
+    <label for="orcid">ORCID</label>
+    <input type="text" name="orcid" id="orcid" value="{{ lecturer['orcid'] }}">
+
+    <label for="email">E-mail</label>
+    <input type="email" name="email" id="email" value="{{ lecturer['email'] }}">
+
+    <input type="submit" value="Сохранить изменения">
+</form>
+<a href="{{ url_for('main.lecturers') }}">← К списку преподавателей</a>
+{% endblock %}

@@ -1,0 +1,66 @@
+<!-- app/templates/publications.html -->
+{% extends "base.html" %}
+{% block title %}Публикации{% endblock %}
+
+{% block content %}
+<h2>Публикации</h2>
+
+{% if g.user and g.user['role'] == 'admin' %}
+    <a href="{{ url_for('main.add_publication') }}" class="button" style="margin-bottom:14px;display:inline-block;">Добавить публикацию</a>
+{% endif %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Год</th>
+            <th>Название</th>
+            <th>Журнал</th>
+            <th>Авторы</th>
+            <th>Источник</th>
+            <th>Цитирования</th>
+            <th>Ссылка</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for pub in pubs %}
+        <tr>
+            <td>{{ pub['year'] }}</td>
+            <td>{{ pub['title'] }}</td>
+            <td>{{ pub['journal'] }}</td>
+            <td>
+                {# Авторы публикации — для каждого автора ссылка на профиль #}
+                {% set authors = [] %}
+                {% for lecturer in get_all_lecturers() %}
+                    {% for lp in get_publications_by_lecturer(lecturer['id']) %}
+                        {% if lp['id'] == pub['id'] %}
+                            {% set _ = authors.append('<a href="' ~ url_for('main.lecturer_profile', lecturer_id=lecturer['id']) ~ '">' ~ lecturer['fio'] ~ '</a>') %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                {{ authors|join(', ')|safe }}
+            </td>
+            <td>{{ pub['source'] }}</td>
+            <td>{{ pub['citations']|default(0) }}</td>
+            <td>
+                {% if pub['link'] %}
+                    <a href="{{ pub['link'] }}" target="_blank">Открыть</a>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+            <td>
+                {% if g.user['role'] == 'admin' %}
+                    <a href="{{ url_for('main.edit_publication', pub_id=pub['id']) }}">Редактировать</a> |
+                    <form action="{{ url_for('main.delete_publication_route', pub_id=pub['id']) }}" method="post" class="delete-form" style="display:inline;">
+                        <button type="submit" style="background:none;border:none;color:#b21f1f;cursor:pointer;padding:0;">Удалить</button>
+                    </form>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

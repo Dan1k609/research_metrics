@@ -1,0 +1,48 @@
+<!-- app/templates/lecturers.html -->
+{% extends "base.html" %}
+{% block title %}Список преподавателей{% endblock %}
+
+{% block content %}
+<h2>Список преподавателей</h2>
+
+{% if g.user and g.user['role'] == 'admin' %}
+    <a href="{{ url_for('main.add_lecturer') }}" class="button" style="margin-bottom: 14px; display: inline-block;">Добавить преподавателя</a>
+{% endif %}
+
+<table>
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Кафедра</th>
+            <th>Должность</th>
+            <th>Email</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for lecturer in lecturers %}
+        <tr>
+            <td>
+                <a href="{{ url_for('main.lecturer_profile', lecturer_id=lecturer['id']) }}">{{ lecturer['fio'] }}</a>
+            </td>
+            <td>{{ lecturer['department'] }}</td>
+            <td>{{ lecturer['position'] }}</td>
+            <td>
+                {% if lecturer['email'] %}
+                    <a href="mailto:{{ lecturer['email'] }}">{{ lecturer['email'] }}</a>
+                {% else %} — {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('main.lecturer_profile', lecturer_id=lecturer['id']) }}">Профиль</a>
+                {% if g.user['role'] == 'admin' %}
+                    | <a href="{{ url_for('main.edit_lecturer', lecturer_id=lecturer['id']) }}">Редактировать</a>
+                    | <form action="{{ url_for('main.delete_lecturer_route', lecturer_id=lecturer['id']) }}" method="post" class="delete-form" style="display:inline;">
+                        <button type="submit" style="background:none;border:none;color:#b21f1f;cursor:pointer;padding:0;">Удалить</button>
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
