@@ -236,3 +236,23 @@ def get_all_logs():
         "LEFT JOIN users u ON logs.user_id = u.id "
         "ORDER BY logs.timestamp DESC"
     ).fetchall()
+
+# ==== FEEDBACK ====
+def create_feedback(name, email, message):
+    db = get_db()
+    db.execute(
+        "INSERT INTO feedback (name, email, message) VALUES (?, ?, ?)",
+        (name, email, message)
+    )
+    db.commit()
+
+def get_all_feedback():
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM feedback ORDER BY created_at DESC"
+    ).fetchall()
+
+def delete_feedback(feedback_id):
+    db = get_db()
+    db.execute("DELETE FROM feedback WHERE id = ?", (feedback_id,))
+    db.commit()
