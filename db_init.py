@@ -1,5 +1,3 @@
-# db_init.py
-
 import sqlite3
 import os
 
@@ -79,6 +77,16 @@ def create_tables(conn):
             FOREIGN KEY(user_id) REFERENCES users(id)
         )
     """)
+    # Таблица обратной связи
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            email TEXT,
+            message TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     conn.commit()
 
 def insert_test_data(conn):
@@ -108,11 +116,9 @@ def insert_test_data(conn):
               ('Современные методы обучения', 2021, 'Педагогика XXI века', 'WoS', '', 3, '10.1234/example3'))
 
     # Связи публикаций и преподавателей
-    # Иванов - 1, Петрова - 2, Сидоров - 3 (по id)
     c.execute("INSERT OR IGNORE INTO lecturer_publications (lecturer_id, publication_id) VALUES (?, ?)", (1, 1))
     c.execute("INSERT OR IGNORE INTO lecturer_publications (lecturer_id, publication_id) VALUES (?, ?)", (2, 2))
     c.execute("INSERT OR IGNORE INTO lecturer_publications (lecturer_id, publication_id) VALUES (?, ?)", (3, 3))
-    # Совместная публикация
     c.execute("INSERT OR IGNORE INTO lecturer_publications (lecturer_id, publication_id) VALUES (?, ?)", (1, 2))
     c.execute("INSERT OR IGNORE INTO lecturer_publications (lecturer_id, publication_id) VALUES (?, ?)", (2, 1))
 
@@ -123,6 +129,14 @@ def insert_test_data(conn):
               (2, 2023, 12, 54, 6, 2, 8, 2, 0))
     c.execute("INSERT OR IGNORE INTO metrics (lecturer_id, year, total_publications, total_citations, h_index, rinz, scopus, wos, gs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
               (3, 2023, 3, 6, 1, 0, 0, 1, 2))
+
+    # Тестовые обращения
+    c.execute("INSERT OR IGNORE INTO feedback (name, email, message) VALUES (?, ?, ?)",
+              ('Василий', 'vasya@example.com', 'Не работает фильтрация в списке публикаций'))
+    c.execute("INSERT OR IGNORE INTO feedback (name, email, message) VALUES (?, ?, ?)",
+              ('Екатерина', 'katya@example.com', 'Хочу предложить добавить экспорт в Excel'))
+    c.execute("INSERT OR IGNORE INTO feedback (name, email, message) VALUES (?, ?, ?)",
+              ('Степан', 'stepan@example.com', 'Опечатка на странице преподавателей'))
     conn.commit()
 
 def main():
