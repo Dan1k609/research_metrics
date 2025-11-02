@@ -256,3 +256,73 @@ def delete_feedback(feedback_id):
     db = get_db()
     db.execute("DELETE FROM feedback WHERE id = ?", (feedback_id,))
     db.commit()
+
+# ==== NEWS ====
+
+def create_news(title, content):
+    db = get_db()
+    db.execute(
+        "INSERT INTO news (title, content) VALUES (?, ?)",
+        (title, content)
+    )
+    db.commit()
+
+def get_all_news():
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM news ORDER BY created_at DESC"
+    ).fetchall()
+
+def get_news_by_id(news_id):
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM news WHERE id = ?", (news_id,)
+    ).fetchone()
+
+def update_news(news_id, title, content):
+    db = get_db()
+    db.execute(
+        "UPDATE news SET title = ?, content = ? WHERE id = ?",
+        (title, content, news_id)
+    )
+    db.commit()
+
+def delete_news(news_id):
+    db = get_db()
+    db.execute("DELETE FROM news WHERE id = ?", (news_id,))
+    db.commit()
+
+# ==== FAQ ====
+
+def create_faq(question, answer):
+    db = get_db()
+    db.execute(
+        "INSERT INTO faq (question, answer) VALUES (?, ?)",
+        (question, answer)
+    )
+    db.commit()
+
+def get_all_faq():
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM faq ORDER BY id DESC"
+    ).fetchall()
+
+def get_faq_by_id(faq_id):
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM faq WHERE id = ?", (faq_id,)
+    ).fetchone()
+
+def update_faq(faq_id, question, answer):
+    db = get_db()
+    db.execute(
+        "UPDATE faq SET question = ?, answer = ? WHERE id = ?",
+        (question, answer, faq_id)
+    )
+    db.commit()
+
+def delete_faq(faq_id):
+    db = get_db()
+    db.execute("DELETE FROM faq WHERE id = ?", (faq_id,))
+    db.commit()
