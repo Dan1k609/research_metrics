@@ -1,0 +1,29 @@
+<!-- app/templates/news.html -->
+{% extends "base.html" %}
+{% block title %}Новости{% endblock %}
+
+{% block content %}
+<h2>Новости</h2>
+
+{% if news and news|length > 0 %}
+    <ul style="list-style:none;padding:0;">
+    {% for n in news %}
+        <li style="margin-bottom:24px;border-bottom:1px solid #eee;padding-bottom:16px;">
+            <h3 style="margin-bottom:5px;">
+                <a href="{{ url_for('main.news_detail', news_id=n['id']) }}">{{ n['title'] }}</a>
+            </h3>
+            <div style="color: #888; font-size: 0.9em; margin-bottom:7px;">
+                {{ n['created_at'][:16]|replace('T', ' ') }}
+            </div>
+            <div style="white-space:pre-line;">{{ n['content'][:180] }}{% if n['content']|length > 180 %}...{% endif %}</div>
+            <div>
+                <a href="{{ url_for('main.news_detail', news_id=n['id']) }}">Читать далее</a>
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Пока нет новостей.</p>
+{% endif %}
+
+{% endblock %}
