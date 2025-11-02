@@ -1,3 +1,6 @@
+import csv
+from io import StringIO
+from flask import Response
 from flask import Blueprint, render_template, redirect, url_for, request, session, flash, g
 from app.models import *
 from functools import wraps
@@ -60,6 +63,46 @@ def dashboard():
     if g.user and g.user['role'] == 'admin':
         feedback_list = get_all_feedback()
     return render_template('dashboard.html', lecturers=lecturers, pubs=pubs, metrics=metrics, feedback_list=feedback_list)
+
+@bp.route('/admin/export_dashboard')
+@login_required(role='admin')
+def export_dashboard():
+    lecturers = get_all_lecturers()
+    pubs = get_all_publications()
+    feedbacks = get_all_feedback()
+
+    # Генерируем CSV "на лету"
+    output = StringIO()
+    writer = csv.writer(output, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+
+    # --- Преподаватели ---
+    writer.writerow(['Преподаватели'])
+    writer.writerow(['ID', 'ФИО', 'Кафедра', 'Должность', 'Учёная степень', 'ORCID', 'Email'])
+    for l in lecturers:
+        writer.writerow([l['id'], l['fio'], l['department'], l['position'], l['academic_degree'], l['orcid'], l['email']])
+    writer.writerow([])
+
+    # --- Публикации ---
+    writer.writerow(['Публикации'])
+    writer.writerow(['ID', 'Название', 'Год', 'Журнал', 'Источник', 'Ссылка', 'Цитирования', 'DOI'])
+    for p in pubs:
+        writer.writerow([p['id'], p['title'], p['year'], p['journal'], p['source'], p['link'], p['citations'], p['doi']])
+    writer.writerow([])
+
+    # --- Обращения пользователей ---
+    writer.writerow(['Обращения (обратная связь)'])
+    writer.writerow(['ID', 'Имя', 'Email', 'Сообщение', 'Дата'])
+    for f in feedbacks:
+        writer.writerow([f['id'], f['name'], f['email'], f['message'], f['created_at']])
+    writer.writerow([])
+
+    output.seek(0)
+    # Формируем правильный заголовок для скачивания
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=dashboard_export.csv"}
+    )
 
 # --- Форма обратной связи ---
 
