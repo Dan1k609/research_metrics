@@ -23,9 +23,12 @@
         <a href="{{ url_for('main.lecturers') }}">Преподаватели</a>
         <a href="{{ url_for('main.publications') }}">Публикации</a>
         <a href="{{ url_for('main.reports') }}">Отчёты</a>
+        <a href="{{ url_for('main.news_list') }}">Новости</a>
+        <a href="{{ url_for('main.faq') }}">FAQ</a>
         <a href="{{ url_for('main.feedback') }}">Обратная связь</a>
         {% if g.user and g.user['role'] == 'admin' %}
             <a href="{{ url_for('main.admin_feedback') }}">Обращения</a>
+            <a href="{{ url_for('main.admin_news') }}">Упр. новостями</a>
             <a href="{{ url_for('main.log') }}">Журнал действий</a>
         {% endif %}
         <span style="margin-left:25px;color:#2067b2;">
