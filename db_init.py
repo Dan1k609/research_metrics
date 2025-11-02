@@ -87,6 +87,23 @@ def create_tables(conn):
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # Таблица новостей
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS news (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            content TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    # Таблица FAQ
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS faq (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question TEXT,
+            answer TEXT
+        )
+    """)
     conn.commit()
 
 def insert_test_data(conn):
@@ -137,6 +154,19 @@ def insert_test_data(conn):
               ('Екатерина', 'katya@example.com', 'Хочу предложить добавить экспорт в Excel'))
     c.execute("INSERT OR IGNORE INTO feedback (name, email, message) VALUES (?, ?, ?)",
               ('Степан', 'stepan@example.com', 'Опечатка на странице преподавателей'))
+
+    # Тестовые новости
+    c.execute("INSERT OR IGNORE INTO news (title, content) VALUES (?, ?)",
+              ('Портал обновлён!', 'Добавлен раздел обратной связи, исправлены мелкие ошибки и улучшена навигация.'))
+    c.execute("INSERT OR IGNORE INTO news (title, content) VALUES (?, ?)",
+              ('Запуск портала научных публикаций', 'Сервис запущен для учёта и аналитики научных публикаций преподавателей университета.'))
+
+    # Тестовые FAQ
+    c.execute("INSERT OR IGNORE INTO faq (question, answer) VALUES (?, ?)",
+              ('Как добавить публикацию?', 'Авторизуйтесь как сотрудник, затем перейдите в раздел "Публикации" и нажмите "Добавить публикацию".'))
+    c.execute("INSERT OR IGNORE INTO faq (question, answer) VALUES (?, ?)",
+              ('Кто может видеть мои публикации?', 'Вся информация о публикациях доступна для просмотра всем пользователям портала, включая гостей.'))
+
     conn.commit()
 
 def main():
