@@ -230,6 +230,76 @@ def log():
     logs = get_all_logs()
     return render_template('log.html', logs=logs)
 
+# --- Новости ---
+
+@bp.route('/news')
+def news_list():
+    news = get_all_news()
+    return render_template('news.html', news=news)
+
+@bp.route('/news/<int:news_id>')
+def news_detail(news_id):
+    news = get_news_by_id(news_id)
+    if not news:
+        flash("Новость не найдена.")
+        return redirect(url_for('main.news_list'))
+    return render_template('news_detail.html', news=news)
+
+# --- FAQ ---
+
+@bp.route('/faq')
+def faq():
+    faqs = get_all_faq()
+    return render_template('faq.html', faqs=faqs)
+
+# --- Админ-панель: Новости ---
+
+@bp.route('/admin/news', methods=['GET', 'POST'])
+@login_required(role='admin')
+def admin_news():
+    news = get_all_news()
+    if request.method == 'POST':
+        title = request.form.get('title')
+        content = request.form.get('content')
+        if title and content:
+            create_news(title, content)
+            flash('Новость добавлена!')
+            return redirect(url_for('main.admin_news'))
+        else:
+            flash('Заполните все поля.')
+    return render_template('admin_news.html', news=news)
+
+@bp.route('/admin/news/delete/<int:news_id>', methods=['POST'])
+@login_required(role='admin')
+def delete_news_route(news_id):
+    delete_news(news_id)
+    flash('Новость удалена.')
+    return redirect(url_for('main.admin_news'))
+
+# --- Админ-панель: FAQ ---
+
+@bp.route('/admin/faq', methods=['GET', 'POST'])
+@login_required(role='admin')
+def admin_faq():
+    faqs = get_all_faq()
+    if request.method == 'POST':
+        question = request.form.get('question')
+        answer = request.form.get('answer')
+        if question and answer:
+            create_faq(question, answer)
+            flash('Вопрос добавлен!')
+            return redirect(url_for('main.admin_faq'))
+        else:
+            flash('Заполните оба поля.')
+    return render_template('admin_faq.html', faqs=faqs)
+
+@bp.route('/admin/faq/delete/<int:faq_id>', methods=['POST'])
+@login_required(role='admin')
+def delete_faq_route(faq_id):
+    delete_faq(faq_id)
+    flash('Вопрос удалён.')
+    return redirect(url_for('main.admin_faq'))
+
 # --- Функции для работы с обратной связью ---
 
 def create_feedback(name, email, message):
