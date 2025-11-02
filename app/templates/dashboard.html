@@ -1,9 +1,13 @@
-<!-- app/templates/dashboard.html -->
 {% extends "base.html" %}
 {% block title %}Дашборд{% endblock %}
 
 {% block content %}
 <h2>Дашборд: Научная активность вуза</h2>
+
+{# КНОПКА ЭКСПОРТА ДЛЯ АДМИНА #}
+{% if g.user and g.user['role'] == 'admin' %}
+    <a href="{{ url_for('main.export_dashboard') }}" class="btn" style="margin-bottom: 18px;">Выгрузить отчёт в CSV</a>
+{% endif %}
 
 <div style="display:flex;flex-wrap:wrap;gap:26px;margin-bottom:28px;">
     <div class="profile-card" style="flex:1;">
@@ -69,7 +73,6 @@
             <td>{{ pub['title'] }}</td>
             <td>{{ pub['journal'] }}</td>
             <td>
-                {# Список авторов публикации #}
                 {% set authors = [] %}
                 {% for lecturer in lecturers %}
                     {% for lp in get_publications_by_lecturer(lecturer['id']) %}
@@ -91,4 +94,5 @@
     {% endfor %}
     </tbody>
 </table>
+
 {% endblock %}
