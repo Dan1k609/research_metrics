@@ -1,0 +1,51 @@
+<!-- app/templates/admin_news.html -->
+{% extends "base.html" %}
+{% block title %}Управление новостями{% endblock %}
+
+{% block content %}
+<h2>Управление новостями</h2>
+
+<form method="post" style="margin-bottom:15px;">
+    <div>
+        <input type="text" name="title" placeholder="Заголовок новости" style="width:250px;" required>
+    </div>
+    <div>
+        <textarea name="content" placeholder="Текст новости" style="width:350px;height:90px;" required></textarea>
+    </div>
+    <button type="submit" class="btn" style="margin-top:8px;">Добавить новость</button>
+</form>
+
+{% if news and news|length > 0 %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Заголовок</th>
+                <th>Дата</th>
+                <th>Кратко</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for n in news %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <a href="{{ url_for('main.news_detail', news_id=n['id']) }}">{{ n['title'] }}</a>
+                </td>
+                <td>{{ n['created_at'] }}</td>
+                <td>{{ n['content'][:80] ~ ('...' if n['content']|length > 80 else '') }}</td>
+                <td>
+                    <!-- Удалить -->
+                    <form action="{{ url_for('main.delete_news_route', news_id=n['id']) }}" method="post" style="display:inline;">
+                        <button type="submit" onclick="return confirm('Удалить новость?');" style="color:red;background:none;border:none;cursor:pointer;">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Новостей пока нет.</p>
+{% endif %}
+{% endblock %}
