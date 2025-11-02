@@ -16,21 +16,29 @@
         </div>
     </div>
 
-    {% if g.user %}
     <nav>
-        <a href="{{ url_for('main.dashboard') }}">Дашборд</a>
+        {% if g.user %}
+            <a href="{{ url_for('main.dashboard') }}">Дашборд</a>
+        {% endif %}
         <a href="{{ url_for('main.lecturers') }}">Преподаватели</a>
         <a href="{{ url_for('main.publications') }}">Публикации</a>
         <a href="{{ url_for('main.reports') }}">Отчёты</a>
-        {% if g.user['role'] == 'admin' %}
+        <a href="{{ url_for('main.feedback') }}">Обратная связь</a>
+        {% if g.user and g.user['role'] == 'admin' %}
+            <a href="{{ url_for('main.admin_feedback') }}">Обращения</a>
             <a href="{{ url_for('main.log') }}">Журнал действий</a>
         {% endif %}
         <span style="margin-left:25px;color:#2067b2;">
-            {{ g.user['fio']|default('Пользователь') }} ({{ g.user['role']|default('') }})
+            {% if g.user %}
+                {{ g.user['fio']|default('Пользователь') }} ({{ g.user['role']|default('') }})
+            {% endif %}
         </span>
-        <a href="{{ url_for('main.logout') }}" style="margin-left:auto;color:#b21f1f;">Выйти</a>
+        {% if g.user %}
+            <a href="{{ url_for('main.logout') }}" style="margin-left:auto;color:#b21f1f;">Выйти</a>
+        {% else %}
+            <a href="{{ url_for('main.login') }}" style="margin-left:auto;color:#2067b2;">Войти</a>
+        {% endif %}
     </nav>
-    {% endif %}
 
     <div class="container">
         {% for message in get_flashed_messages() %}
