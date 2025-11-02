@@ -1,5 +1,3 @@
-# app/routes.py
-
 from flask import Blueprint, render_template, redirect, url_for, request, session, flash, g
 from app.models import *
 from functools import wraps
@@ -60,16 +58,14 @@ def dashboard():
         metrics[l['id']] = m[0] if m else None
     return render_template('dashboard.html', lecturers=lecturers, pubs=pubs, metrics=metrics)
 
-# --- Преподаватели ---
+# --- Преподаватели (Открытые страницы) ---
 
 @bp.route('/lecturers')
-@login_required()
 def lecturers():
     lecturers = get_all_lecturers()
     return render_template('lecturers.html', lecturers=lecturers)
 
 @bp.route('/lecturer/<int:lecturer_id>')
-@login_required()
 def lecturer_profile(lecturer_id):
     lecturer = get_lecturer_by_id(lecturer_id)
     pubs = get_publications_by_lecturer(lecturer_id)
@@ -110,10 +106,9 @@ def delete_lecturer_route(lecturer_id):
     log_action(session['user_id'], "delete_lecturer", f"Удалён преподаватель: {lecturer['fio']}")
     return redirect(url_for('main.lecturers'))
 
-# --- Публикации ---
+# --- Публикации (Открытая страница) ---
 
 @bp.route('/publications')
-@login_required()
 def publications():
     pubs = get_all_publications()
     return render_template('publications.html', pubs=pubs)
@@ -182,10 +177,9 @@ def metrics(lecturer_id):
         return redirect(url_for('main.lecturer_profile', lecturer_id=lecturer_id))
     return render_template('metrics.html', lecturer=lecturer, metrics=metrics)
 
-# --- Отчёты ---
+# --- Отчёты (Открытая страница) ---
 
 @bp.route('/reports')
-@login_required()
 def reports():
     lecturers = get_all_lecturers()
     pubs = get_all_publications()
