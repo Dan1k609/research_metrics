@@ -56,7 +56,34 @@ def dashboard():
     for l in lecturers:
         m = get_metrics_by_lecturer(l['id'])
         metrics[l['id']] = m[0] if m else None
-    return render_template('dashboard.html', lecturers=lecturers, pubs=pubs, metrics=metrics)
+    feedback_list = []
+    if g.user and g.user['role'] == 'admin':
+        feedback_list = get_all_feedback()
+    return render_template('dashboard.html', lecturers=lecturers, pubs=pubs, metrics=metrics, feedback_list=feedback_list)
+
+# --- Форма обратной связи ---
+
+@bp.route('/feedback', methods=['GET', 'POST'])
+def feedback():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        message = request.form.get('message')
+        if name and email and message:
+            create_feedback(name, email, message)
+            flash("Спасибо! Ваше сообщение отправлено администрации.")
+            return redirect(url_for('main.feedback'))
+        else:
+            flash("Пожалуйста, заполните все поля.")
+    return render_template('feedback.html')
+
+# --- Просмотр обращений администратора ---
+
+@bp.route('/admin/feedback')
+@login_required(role='admin')
+def admin_feedback():
+    feedback_list = get_all_feedback()
+    return render_template('admin_feedback.html', feedbacks=feedback_list)
 
 # --- Преподаватели (Открытые страницы) ---
 
@@ -202,3 +229,19 @@ def reports():
 def log():
     logs = get_all_logs()
     return render_template('log.html', logs=logs)
+
+# --- Функции для работы с обратной связью ---
+
+def create_feedback(name, email, message):
+    db = get_db()
+    db.execute(
+        "INSERT INTO feedback (name, email, message) VALUES (?, ?, ?)",
+        (name, email, message)
+    )
+    db.commit()
+
+def get_all_feedback():
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM feedback ORDER BY created_at DESC"
+    ).fetchall()
