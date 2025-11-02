@@ -1,0 +1,14 @@
+<!-- app/templates/news_detail.html -->
+{% extends "base.html" %}
+{% block title %}{{ news['title'] }}{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom:5px;">{{ news['title'] }}</h2>
+<div style="color:#888;font-size:0.9em;margin-bottom:18px;">
+    {{ news['created_at'][:16]|replace('T', ' ') }}
+</div>
+<div style="white-space:pre-line;font-size:1.07em;">
+    {{ news['content'] }}
+</div>
+<a href="{{ url_for('main.news_list') }}" style="display:inline-block;margin-top:22px;">← К списку новостей</a>
+{% endblock %}
