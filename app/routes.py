@@ -350,23 +350,38 @@ def delete_faq_route(faq_id):
 def profile():
     user = g.user
 
-    users = []
-    pending_pubs = []
-    revision_pubs = []
+    users = []             # для админа
+    pending_pubs = []      # для staff (если нужно)
+    revision_pubs = []     # для staff (контроль доработок)
+    lecturer_info = None   # для преподавателя
+    lecturer_pubs = []     # его публикации
 
     if user['role'] == 'admin':
         users = get_all_users()
+
     elif user['role'] == 'staff':
-        pending_pubs = get_publications_for_review()
-        revision_pubs = get_publications_with_revision_required()
+        try:
+            pending_pubs = get_publications_for_review()
+            revision_pubs = get_publications_with_revision_required()
+        except NameError:
+            pending_pubs = []
+            revision_pubs = []
+
+    elif user['role'] == 'lecturer':
+        lecturer_info = get_lecturer_for_user(user['id'])
+        if lecturer_info:
+            lecturer_pubs = get_publications_by_lecturer(lecturer_info['id'])
 
     return render_template(
         'profile.html',
         user=user,
         users=users,
         pending_pubs=pending_pubs,
-        revision_pubs=revision_pubs
+        revision_pubs=revision_pubs,
+        lecturer_info=lecturer_info,
+        lecturer_pubs=lecturer_pubs
     )
+
 
 
 # --- Управление пользователями ---
