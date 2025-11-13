@@ -126,8 +126,9 @@ def create_tables(conn):
 def insert_test_data(conn):
     c = conn.cursor()
 
-    # Пользователи: admin/admin, user/user
     from werkzeug.security import generate_password_hash
+
+    # Пользователи: admin/admin, user/user
     c.execute(
         "INSERT OR IGNORE INTO users (fio, email, password, role) VALUES (?, ?, ?, ?)",
         ('Администратор', 'admin@university.ru', generate_password_hash('admin'), 'admin')
@@ -155,6 +156,27 @@ def insert_test_data(conn):
         "VALUES (?, ?, ?, ?, ?, ?)",
         ('Сидоров Алексей Петрович', 'ассистент', 'Кафедра математики',
          '', '', 'sidorov@university.ru')
+    )
+
+    # Учётные записи для этих преподавателей (роль lecturer)
+    # Предполагаем, что это первые три записи в lecturers -> id 1,2,3
+    c.execute(
+        "INSERT OR IGNORE INTO users (fio, email, password, role, lecturer_id) "
+        "VALUES (?, ?, ?, ?, ?)",
+        ('Иванов Иван Иванович', 'ivanov@university.ru',
+         generate_password_hash('ivanov'), 'lecturer', 1)
+    )
+    c.execute(
+        "INSERT OR IGNORE INTO users (fio, email, password, role, lecturer_id) "
+        "VALUES (?, ?, ?, ?, ?)",
+        ('Петрова Мария Сергеевна', 'petrova@university.ru',
+         generate_password_hash('petrova'), 'lecturer', 2)
+    )
+    c.execute(
+        "INSERT OR IGNORE INTO users (fio, email, password, role, lecturer_id) "
+        "VALUES (?, ?, ?, ?, ?)",
+        ('Сидоров Алексей Петрович', 'sidorov@university.ru',
+         generate_password_hash('sidorov'), 'lecturer', 3)
     )
 
     # Тестовый преподаватель для личного кабинета
