@@ -74,12 +74,14 @@ def delete_user(user_id):
     db.execute("DELETE FROM users WHERE id = ?", (user_id,))
     db.commit()
 
+
 def block_user(user_id):
     db = get_db()
     db.execute(
         "UPDATE users SET role = 'blocked' WHERE id = ?", (user_id,)
     )
     db.commit()
+
 
 def set_user_role(user_id, new_role):
     db = get_db()
@@ -88,11 +90,13 @@ def set_user_role(user_id, new_role):
     )
     db.commit()
 
+
 # ==== LECTURERS ====
 def create_lecturer(fio, position, department, academic_degree, orcid, email):
     db = get_db()
     db.execute(
-        "INSERT INTO lecturers (fio, position, department, academic_degree, orcid, email) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO lecturers (fio, position, department, academic_degree, orcid, email) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
         (fio, position, department, academic_degree, orcid, email)
     )
     db.commit()
@@ -115,7 +119,8 @@ def get_all_lecturers():
 def update_lecturer(lecturer_id, fio, position, department, academic_degree, orcid, email):
     db = get_db()
     db.execute(
-        "UPDATE lecturers SET fio = ?, position = ?, department = ?, academic_degree = ?, orcid = ?, email = ? WHERE id = ?",
+        "UPDATE lecturers SET fio = ?, position = ?, department = ?, academic_degree = ?, orcid = ?, email = ? "
+        "WHERE id = ?",
         (fio, position, department, academic_degree, orcid, email, lecturer_id)
     )
     db.commit()
@@ -132,7 +137,8 @@ def create_publication(title, year, journal, source, link, citations, doi, lectu
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        "INSERT INTO publications (title, year, journal, source, link, citations, doi) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO publications (title, year, journal, source, link, citations, doi) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
         (title, year, journal, source, link, citations, doi)
     )
     pub_id = cursor.lastrowid
@@ -181,7 +187,8 @@ def get_publications_by_lecturer(lecturer_id):
 def update_publication(pub_id, title, year, journal, source, link, citations, doi, lecturer_ids):
     db = get_db()
     db.execute(
-        "UPDATE publications SET title = ?, year = ?, journal = ?, source = ?, link = ?, citations = ?, doi = ? WHERE id = ?",
+        "UPDATE publications SET title = ?, year = ?, journal = ?, source = ?, link = ?, citations = ?, doi = ? "
+        "WHERE id = ?",
         (title, year, journal, source, link, citations, doi, pub_id)
     )
     # Сначала удалить старые связи
@@ -201,6 +208,7 @@ def delete_publication(pub_id):
     db.execute("DELETE FROM publications WHERE id = ?", (pub_id,))
     db.commit()
 
+
 def update_publication_status(pub_id, status, review_comment=None, revision_deadline=None, reviewer_id=None):
     """
     Обновить статус публикации:
@@ -208,7 +216,8 @@ def update_publication_status(pub_id, status, review_comment=None, revision_dead
     """
     db = get_db()
     db.execute(
-        "UPDATE publications SET status = ?, review_comment = ?, revision_deadline = ?, reviewer_id = ? WHERE id = ?",
+        "UPDATE publications SET status = ?, review_comment = ?, revision_deadline = ?, reviewer_id = ? "
+        "WHERE id = ?",
         (status, review_comment, revision_deadline, reviewer_id, pub_id)
     )
     db.commit()
@@ -217,7 +226,7 @@ def update_publication_status(pub_id, status, review_comment=None, revision_dead
 def get_publications_for_review():
     """
     Публикации для проверки сотрудником научного отдела.
-    Можно фильтровать по статусу, но пока отдадим все.
+    Пока просто все, можно фильтровать по статусу.
     """
     db = get_db()
     return db.execute(
@@ -233,6 +242,7 @@ def get_publications_with_revision_required():
     return db.execute(
         "SELECT * FROM publications WHERE status = 'revision_required' ORDER BY revision_deadline"
     ).fetchall()
+
 
 def get_lecturer_for_user(user_id):
     """
@@ -298,6 +308,7 @@ def get_all_logs():
         "ORDER BY logs.timestamp DESC"
     ).fetchall()
 
+
 # ==== FEEDBACK ====
 def create_feedback(name, email, message):
     db = get_db()
@@ -307,19 +318,21 @@ def create_feedback(name, email, message):
     )
     db.commit()
 
+
 def get_all_feedback():
     db = get_db()
     return db.execute(
         "SELECT * FROM feedback ORDER BY created_at DESC"
     ).fetchall()
 
+
 def delete_feedback(feedback_id):
     db = get_db()
     db.execute("DELETE FROM feedback WHERE id = ?", (feedback_id,))
     db.commit()
 
-# ==== NEWS ====
 
+# ==== NEWS ====
 def create_news(title, content):
     db = get_db()
     db.execute(
@@ -328,17 +341,20 @@ def create_news(title, content):
     )
     db.commit()
 
+
 def get_all_news():
     db = get_db()
     return db.execute(
         "SELECT * FROM news ORDER BY created_at DESC"
     ).fetchall()
 
+
 def get_news_by_id(news_id):
     db = get_db()
     return db.execute(
         "SELECT * FROM news WHERE id = ?", (news_id,)
     ).fetchone()
+
 
 def update_news(news_id, title, content):
     db = get_db()
@@ -348,13 +364,14 @@ def update_news(news_id, title, content):
     )
     db.commit()
 
+
 def delete_news(news_id):
     db = get_db()
     db.execute("DELETE FROM news WHERE id = ?", (news_id,))
     db.commit()
 
-# ==== FAQ ====
 
+# ==== FAQ ====
 def create_faq(question, answer):
     db = get_db()
     db.execute(
@@ -363,17 +380,20 @@ def create_faq(question, answer):
     )
     db.commit()
 
+
 def get_all_faq():
     db = get_db()
     return db.execute(
         "SELECT * FROM faq ORDER BY id DESC"
     ).fetchall()
 
+
 def get_faq_by_id(faq_id):
     db = get_db()
     return db.execute(
         "SELECT * FROM faq WHERE id = ?", (faq_id,)
     ).fetchone()
+
 
 def update_faq(faq_id, question, answer):
     db = get_db()
@@ -382,6 +402,7 @@ def update_faq(faq_id, question, answer):
         (question, answer, faq_id)
     )
     db.commit()
+
 
 def delete_faq(faq_id):
     db = get_db()
