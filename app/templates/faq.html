@@ -1,24 +1,27 @@
-<!-- app/templates/faq.html -->
 {% extends "base.html" %}
-{% block title %}FAQ — Часто задаваемые вопросы{% endblock %}
+{% block title %}FAQ{% endblock %}
 
 {% block content %}
-<h2>Часто задаваемые вопросы (FAQ)</h2>
+<h2>Часто задаваемые вопросы</h2>
 
-{% if faq_list and faq_list|length > 0 %}
-    <div class="faq-list" style="margin-top:20px;">
-        {% for faq in faq_list %}
-            <div class="faq-item" style="margin-bottom:22px;">
-                <div class="faq-question" style="font-weight:bold;">
-                    {{ loop.index }}. {{ faq['question'] }}
-                </div>
-                <div class="faq-answer" style="margin-top:5px;white-space:pre-line;">
-                    {{ faq['answer'] }}
-                </div>
+{% if faqs and faqs|length > 0 %}
+
+    <div class="faq-list">
+        {% for item in faqs %}
+        <div class="faq-item" style="margin-bottom: 15px;">
+            <div class="faq-question" style="font-weight: bold;">
+                {{ item['question'] }}
             </div>
+            <div class="faq-answer" style="margin-top: 5px;">
+                {{ item['answer'] }}
+            </div>
+        </div>
+        <hr>
         {% endfor %}
     </div>
+
 {% else %}
-    <p>FAQ пока не добавлены.</p>
+    <p>Пока нет ни одного вопроса в FAQ.</p>
 {% endif %}
+
 {% endblock %}
