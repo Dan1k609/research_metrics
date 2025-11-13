@@ -343,6 +343,17 @@ def delete_faq_route(faq_id):
     flash('Вопрос удалён.')
     return redirect(url_for('main.admin_faq'))
 
+@bp.route('/profile')
+@login_required()
+def profile():
+    # Получить текущего пользователя
+    user = g.user
+    # Для админа: нужен список всех пользователей
+    users = []
+    if user['role'] == 'admin':
+        users = get_all_users()
+    return render_template('profile.html', user=user, users=users)
+
 # --- Функции для работы с обратной связью ---
 
 def create_feedback(name, email, message):
