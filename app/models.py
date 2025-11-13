@@ -74,6 +74,19 @@ def delete_user(user_id):
     db.execute("DELETE FROM users WHERE id = ?", (user_id,))
     db.commit()
 
+def block_user(user_id):
+    db = get_db()
+    db.execute(
+        "UPDATE users SET role = 'blocked' WHERE id = ?", (user_id,)
+    )
+    db.commit()
+
+def set_user_role(user_id, new_role):
+    db = get_db()
+    db.execute(
+        "UPDATE users SET role = ? WHERE id = ?", (new_role, user_id)
+    )
+    db.commit()
 
 # ==== LECTURERS ====
 def create_lecturer(fio, position, department, academic_degree, orcid, email):
