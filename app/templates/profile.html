@@ -6,73 +6,93 @@
 
 <!-- Базовая информация видна всем -->
 <div class="profile-info" style="margin-bottom: 25px;">
-    <b>ФИО:</b> {{ user.fio }}<br>
-    <b>Email:</b> {{ user.email }}<br>
-    <b>Роль:</b> {{ user.role }}
+    <b>ФИО:</b> {{ user['fio'] }}<br>
+    <b>Email:</b> {{ user['email'] }}<br>
+    <b>Роль:</b> {{ user['role'] }}
 </div>
 
-{% if user.role == 'admin' %}
+{% if user['role'] == 'admin' %}
     <hr>
+    <h3>Управление пользователями и ролями</h3>
 
-    <!-- Управление пользователями -->
-    <h3>Пользователи системы</h3>
-    <a href="{{ url_for('main.add_user') }}" class="btn" style="margin-bottom: 10px;">Создать пользователя</a>
-    <table>
-        <thead>
-            <tr>
-                <th>ФИО</th>
-                <th>Email</th>
-                <th>Роль</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for u in users %}
-            <tr>
-                <td>{{ u['fio'] }}</td>
-                <td>{{ u['email'] }}</td>
-                <td>{{ u['role'] }}</td>
-                <td>
-                    {% if u['role'] != 'admin' %}
-                        {% if u['role'] != 'blocked' %}
-                            <form action="{{ url_for('main.block_user', user_id=u['id']) }}" method="post" style="display:inline;">
-                                <button type="submit" onclick="return confirm('Заблокировать пользователя?');">Заблокировать</button>
-                            </form>
-                        {% else %}
-                            <form action="{{ url_for('main.unblock_user', user_id=u['id']) }}" method="post" style="display:inline;">
-                                <button type="submit" onclick="return confirm('Разблокировать пользователя?');">Разблокировать</button>
+    <p>Здесь администратор может создавать пользователей, менять им роли,
+       блокировать и удалять учётные записи.</p>
+
+    <div style="margin-bottom: 15px;">
+        <a href="{{ url_for('main.add_user') }}" class="btn">Создать пользователя</a>
+    </div>
+
+    {% if users %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ФИО</th>
+                    <th>Email</th>
+                    <th>Роль</th>
+                    <th style="width: 270px;">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ u['fio'] }}</td>
+                    <td>{{ u['email'] }}</td>
+                    <td>{{ u['role'] }}</td>
+                    <td>
+                        <!-- Редактировать пользователя -->
+                        <a href="{{ url_for('main.edit_user', user_id=u['id']) }}" class="btn">Изменить</a>
+
+                        <!-- Блокировка / разблокировка (кроме админа) -->
+                        {% if u['role'] != 'admin' %}
+                            {% if u['role'] != 'blocked' %}
+                                <form action="{{ url_for('main.block_user', user_id=u['id']) }}"
+                                      method="post" style="display:inline;">
+                                    <button type="submit" class="btn">Заблокировать</button>
+                                </form>
+                            {% else %}
+                                <form action="{{ url_for('main.unblock_user', user_id=u['id']) }}"
+                                      method="post" style="display:inline;">
+                                    <button type="submit" class="btn">Разблокировать</button>
+                                </form>
+                            {% endif %}
+
+                            <!-- Удаление пользователя -->
+                            <form action="{{ url_for('main.delete_user_route', user_id=u['id']) }}"
+                                  method="post" style="display:inline;"
+                                  onsubmit="return confirm('Удалить пользователя {{ u['fio'] }}?');">
+                                <button type="submit" class="btn">Удалить</button>
                             </form>
                         {% endif %}
-                        |
-                        <a href="{{ url_for('main.edit_user', user_id=u['id']) }}">Изменить роль</a>
-                        |
-                        <form action="{{ url_for('main.delete_user', user_id=u['id']) }}" method="post" style="display:inline;">
-                            <button type="submit" onclick="return confirm('Удалить пользователя?');" style="color:red;background:none;border:none;cursor:pointer;">Удалить</button>
-                        </form>
-                    {% else %}
-                        <span style="color:#888;">—</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Пользователи ещё не созданы.</p>
+    {% endif %}
 
     <hr>
-    <!-- Справочники и управление -->
-    <h3>Управление справочниками</h3>
-    <div style="margin-bottom: 18px;">
+    <h3>Редактирование справочников и данных системы</h3>
+
+    <p>Быстрый доступ к основным разделам администрирования:</p>
+
+    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
         <a href="{{ url_for('main.lecturers') }}" class="btn">Преподаватели</a>
         <a href="{{ url_for('main.publications') }}" class="btn">Публикации</a>
-        <a href="{{ url_for('main.admin_news') }}" class="btn">Новости</a>
-        <a href="{{ url_for('main.admin_faq') }}" class="btn">FAQ</a>
+        <a href="{{ url_for('main.admin_news') }}" class="btn">Управление новостями</a>
+        <a href="{{ url_for('main.admin_faq') }}" class="btn">Управление FAQ</a>
         <a href="{{ url_for('main.log') }}" class="btn">Журнал действий</a>
+        <a href="{{ url_for('main.admin_feedback') }}" class="btn">Обращения пользователей</a>
     </div>
+
 {% else %}
     <hr>
     <p>Добро пожаловать в личный кабинет!</p>
-    <p>Ваша роль: <b>{{ user.role }}</b></p>
-    <!-- Здесь в будущем можно добавить кнопки для сотрудников, например "Мои публикации", "Мои метрики" и т.п. -->
+    <p>Ваша роль: <b>{{ user['role'] }}</b></p>
+    <!-- Здесь можно потом добавить: "Мои публикации", "Мои метрики" и т.п. -->
 {% endif %}
 
 {% endblock %}
