@@ -6,17 +6,15 @@
 
 <!-- Базовая информация видна всем -->
 <div class="profile-info" style="margin-bottom: 25px;">
-    <b>ФИО:</b> {{ user['fio'] }}<br>
-    <b>Email:</b> {{ user['email'] }}<br>
-    <b>Роль:</b> {{ user['role'] }}
+    <b>ФИО:</b> {{ user.fio }}<br>
+    <b>Email:</b> {{ user.email }}<br>
+    <b>Роль:</b> {{ user.role }}
 </div>
 
-{% if user['role'] == 'admin' %}
+{% if user.role == 'admin' %}
+
     <hr>
     <h3>Управление пользователями и ролями</h3>
-
-    <p>Здесь администратор может создавать пользователей, менять им роли,
-       блокировать и удалять учётные записи.</p>
 
     <div style="margin-bottom: 15px;">
         <a href="{{ url_for('main.add_user') }}" class="btn">Создать пользователя</a>
@@ -37,31 +35,28 @@
                 {% for u in users %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ u['fio'] }}</td>
-                    <td>{{ u['email'] }}</td>
-                    <td>{{ u['role'] }}</td>
+                    <td>{{ u.fio }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.role }}</td>
                     <td>
-                        <!-- Редактировать пользователя -->
-                        <a href="{{ url_for('main.edit_user', user_id=u['id']) }}" class="btn">Изменить</a>
+                        <a href="{{ url_for('main.edit_user', user_id=u.id) }}" class="btn">Изменить</a>
 
-                        <!-- Блокировка / разблокировка (кроме админа) -->
-                        {% if u['role'] != 'admin' %}
-                            {% if u['role'] != 'blocked' %}
-                                <form action="{{ url_for('main.block_user', user_id=u['id']) }}"
+                        {% if u.role != 'admin' %}
+                            {% if u.role != 'blocked' %}
+                                <form action="{{ url_for('main.block_user', user_id=u.id) }}"
                                       method="post" style="display:inline;">
                                     <button type="submit" class="btn">Заблокировать</button>
                                 </form>
                             {% else %}
-                                <form action="{{ url_for('main.unblock_user', user_id=u['id']) }}"
+                                <form action="{{ url_for('main.unblock_user', user_id=u.id) }}"
                                       method="post" style="display:inline;">
                                     <button type="submit" class="btn">Разблокировать</button>
                                 </form>
                             {% endif %}
 
-                            <!-- Удаление пользователя -->
-                            <form action="{{ url_for('main.delete_user_route', user_id=u['id']) }}"
+                            <form action="{{ url_for('main.delete_user_route', user_id=u.id) }}"
                                   method="post" style="display:inline;"
-                                  onsubmit="return confirm('Удалить пользователя {{ u['fio'] }}?');">
+                                  onsubmit="return confirm('Удалить пользователя {{ u.fio }}?');">
                                 <button type="submit" class="btn">Удалить</button>
                             </form>
                         {% endif %}
@@ -75,24 +70,80 @@
     {% endif %}
 
     <hr>
-    <h3>Редактирование справочников и данных системы</h3>
-
-    <p>Быстрый доступ к основным разделам администрирования:</p>
+    <h3>Редактирование данных системы</h3>
 
     <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
         <a href="{{ url_for('main.lecturers') }}" class="btn">Преподаватели</a>
         <a href="{{ url_for('main.publications') }}" class="btn">Публикации</a>
-        <a href="{{ url_for('main.admin_news') }}" class="btn">Управление новостями</a>
-        <a href="{{ url_for('main.admin_faq') }}" class="btn">Управление FAQ</a>
+        <a href="{{ url_for('main.admin_news') }}" class="btn">Новости</a>
+        <a href="{{ url_for('main.admin_faq') }}" class="btn">FAQ</a>
         <a href="{{ url_for('main.log') }}" class="btn">Журнал действий</a>
         <a href="{{ url_for('main.admin_feedback') }}" class="btn">Обращения пользователей</a>
     </div>
 
+{% elif user.role == 'staff' %}
+
+    <hr>
+    <h3>Инструменты сотрудника научного отдела</h3>
+
+    <p>Здесь доступны операции по проверке и контролю публикаций.</p>
+
+    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; margin-bottom:15px;">
+        <a href="{{ url_for('main.publications') }}" class="btn">Список всех публикаций</a>
+        <a href="{{ url_for('main.staff_review') }}" class="btn">Проверка / утверждение</a>
+        <a href="{{ url_for('main.staff_export_reports') }}" class="btn">Экспорт отчётов (CSV)</a>
+    </div>
+
+    <hr>
+    <h3>Публикации на доработке (контроль сроков)</h3>
+
+    {% if revision_pubs and revision_pubs|length > 0 %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Название</th>
+                    <th>Год</th>
+                    <th>Статус</th>
+                    <th>Крайний срок доработки</th>
+                    <th>Комментарий проверяющего</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in revision_pubs %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ p.title }}</td>
+                    <td>{{ p.year }}</td>
+                    <td>
+                        {% if p.status == 'revision_required' %}
+                            На доработке
+                        {% else %}
+                            {{ p.status }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.revision_deadline %}
+                            {{ p.revision_deadline }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ p.review_comment or '' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Сейчас нет публикаций, отправленных на доработку.</p>
+    {% endif %}
+
 {% else %}
+
     <hr>
     <p>Добро пожаловать в личный кабинет!</p>
-    <p>Ваша роль: <b>{{ user['role'] }}</b></p>
-    <!-- Здесь можно потом добавить: "Мои публикации", "Мои метрики" и т.п. -->
+    <p>Ваша роль: <b>{{ user.role }}</b></p>
+
 {% endif %}
 
 {% endblock %}
