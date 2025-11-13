@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<h2>Личный кабинет</h2>
+
+<!-- Базовая информация видна всем -->
+<div class="profile-info" style="margin-bottom: 25px;">
+    <b>ФИО:</b> {{ user.fio }}<br>
+    <b>Email:</b> {{ user.email }}<br>
+    <b>Роль:</b> {{ user.role }}
+</div>
+
+{% if user.role == 'admin' %}
+    <hr>
+
+    <!-- Управление пользователями -->
+    <h3>Пользователи системы</h3>
+    <a href="{{ url_for('main.add_user') }}" class="btn" style="margin-bottom: 10px;">Создать пользователя</a>
+    <table>
+        <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Email</th>
+                <th>Роль</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u['fio'] }}</td>
+                <td>{{ u['email'] }}</td>
+                <td>{{ u['role'] }}</td>
+                <td>
+                    {% if u['role'] != 'admin' %}
+                        {% if u['role'] != 'blocked' %}
+                            <form action="{{ url_for('main.block_user', user_id=u['id']) }}" method="post" style="display:inline;">
+                                <button type="submit" onclick="return confirm('Заблокировать пользователя?');">Заблокировать</button>
+                            </form>
+                        {% else %}
+                            <form action="{{ url_for('main.unblock_user', user_id=u['id']) }}" method="post" style="display:inline;">
+                                <button type="submit" onclick="return confirm('Разблокировать пользователя?');">Разблокировать</button>
+                            </form>
+                        {% endif %}
+                        |
+                        <a href="{{ url_for('main.edit_user', user_id=u['id']) }}">Изменить роль</a>
+                        |
+                        <form action="{{ url_for('main.delete_user', user_id=u['id']) }}" method="post" style="display:inline;">
+                            <button type="submit" onclick="return confirm('Удалить пользователя?');" style="color:red;background:none;border:none;cursor:pointer;">Удалить</button>
+                        </form>
+                    {% else %}
+                        <span style="color:#888;">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+    <!-- Справочники и управление -->
+    <h3>Управление справочниками</h3>
+    <div style="margin-bottom: 18px;">
+        <a href="{{ url_for('main.lecturers') }}" class="btn">Преподаватели</a>
+        <a href="{{ url_for('main.publications') }}" class="btn">Публикации</a>
+        <a href="{{ url_for('main.admin_news') }}" class="btn">Новости</a>
+        <a href="{{ url_for('main.admin_faq') }}" class="btn">FAQ</a>
+        <a href="{{ url_for('main.log') }}" class="btn">Журнал действий</a>
+    </div>
+{% else %}
+    <hr>
+    <p>Добро пожаловать в личный кабинет!</p>
+    <p>Ваша роль: <b>{{ user.role }}</b></p>
+    <!-- Здесь в будущем можно добавить кнопки для сотрудников, например "Мои публикации", "Мои метрики" и т.п. -->
+{% endif %}
+
+{% endblock %}
