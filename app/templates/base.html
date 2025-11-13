@@ -20,6 +20,7 @@
         {% if g.user %}
             <a href="{{ url_for('main.dashboard') }}">Дашборд</a>
         {% endif %}
+        <a href="{{ url_for('main.profile') }}">Личный кабинет</a>
         <a href="{{ url_for('main.lecturers') }}">Преподаватели</a>
         <a href="{{ url_for('main.publications') }}">Публикации</a>
         <a href="{{ url_for('main.reports') }}">Отчёты</a>
