@@ -4,6 +4,8 @@ from flask import Response
 from flask import Blueprint, render_template, redirect, url_for, request, session, flash, g
 from app.models import *
 from functools import wraps
+from datetime import date
+
 
 bp = Blueprint('main', __name__)
 
@@ -346,13 +348,26 @@ def delete_faq_route(faq_id):
 @bp.route('/profile')
 @login_required()
 def profile():
-    # Получить текущего пользователя
     user = g.user
-    # Для админа: нужен список всех пользователей
+
     users = []
+    pending_pubs = []
+    revision_pubs = []
+
     if user['role'] == 'admin':
         users = get_all_users()
-    return render_template('profile.html', user=user, users=users)
+    elif user['role'] == 'staff':
+        pending_pubs = get_publications_for_review()
+        revision_pubs = get_publications_with_revision_required()
+
+    return render_template(
+        'profile.html',
+        user=user,
+        users=users,
+        pending_pubs=pending_pubs,
+        revision_pubs=revision_pubs
+    )
+
 
 # --- Управление пользователями ---
 @bp.route('/admin/add_user', methods=['GET', 'POST'])
@@ -406,6 +421,99 @@ def delete_user_route(user_id):
     delete_user(user_id)
     flash('Пользователь удалён')
     return redirect(url_for('main.profile'))
+
+# --- Кабинет сотрудника научного отдела: проверка публикаций ---
+
+@bp.route('/staff/review')
+@login_required(role='staff')
+def staff_review():
+    pubs = get_publications_for_review()
+    today = date.today().isoformat()  # 'YYYY-MM-DD'
+    return render_template('staff_review.html', pubs=pubs, today=today)
+
+@bp.route('/staff/publication/<int:pub_id>/approve', methods=['POST'])
+@login_required(role='staff')
+def staff_approve_publication(pub_id):
+    comment = request.form.get('comment') or None
+    update_publication_status(
+        pub_id,
+        status='approved',
+        review_comment=comment,
+        revision_deadline=None,
+        reviewer_id=session['user_id']
+    )
+    flash('Публикация утверждена')
+    return redirect(url_for('main.staff_review'))
+
+
+@bp.route('/staff/publication/<int:pub_id>/reject', methods=['POST'])
+@login_required(role='staff')
+def staff_reject_publication(pub_id):
+    comment = request.form.get('comment') or None
+    update_publication_status(
+        pub_id,
+        status='rejected',
+        review_comment=comment,
+        revision_deadline=None,
+        reviewer_id=session['user_id']
+    )
+    flash('Публикация отклонена')
+    return redirect(url_for('main.staff_review'))
+
+
+@bp.route('/staff/publication/<int:pub_id>/send_to_revision', methods=['POST'])
+@login_required(role='staff')
+def staff_send_to_revision(pub_id):
+    comment = request.form.get('comment') or None
+    deadline = request.form.get('revision_deadline') or None  # 'YYYY-MM-DD'
+    update_publication_status(
+        pub_id,
+        status='revision_required',
+        review_comment=comment,
+        revision_deadline=deadline,
+        reviewer_id=session['user_id']
+    )
+    flash('Публикация отправлена на доработку')
+    return redirect(url_for('main.staff_review'))
+@bp.route('/staff/export_reports')
+@login_required(role='staff')
+def staff_export_reports():
+    pubs = get_all_publications()
+
+    output = StringIO()
+    writer = csv.writer(output, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+
+    writer.writerow([
+        'ID', 'Название', 'Год', 'Журнал', 'Статус',
+        'Цитирования', 'DOI', 'Крайний срок доработки', 'Комментарий проверяющего'
+    ])
+
+    for p in pubs:
+        # sqlite3.Row, поэтому доступ через [].
+        # Поля status/revision_deadline/review_comment будут, если ты прогнал create_tables().
+        status = p['status'] if 'status' in p.keys() else ''
+        deadline = p['revision_deadline'] if 'revision_deadline' in p.keys() else ''
+        comment = p['review_comment'] if 'review_comment' in p.keys() else ''
+
+        writer.writerow([
+            p['id'],
+            p['title'],
+            p['year'],
+            p['journal'],
+            status,
+            p['citations'],
+            p['doi'],
+            deadline,
+            comment
+        ])
+
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=publications_report.csv"}
+    )
+
 
 # --- Функции для работы с обратной связью ---
 
