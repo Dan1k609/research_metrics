@@ -4,13 +4,14 @@
 {% block content %}
 <h2>Личный кабинет</h2>
 
-<!-- Базовая информация видна всем -->
+<!-- Базовая информация для любого пользователя -->
 <div class="profile-info" style="margin-bottom: 25px;">
     <b>ФИО:</b> {{ user.fio }}<br>
     <b>Email:</b> {{ user.email }}<br>
     <b>Роль:</b> {{ user.role }}
 </div>
 
+{# ================== АДМИНИСТРАТОР ================== #}
 {% if user.role == 'admin' %}
 
     <hr>
@@ -39,9 +40,11 @@
                     <td>{{ u.email }}</td>
                     <td>{{ u.role }}</td>
                     <td>
+                        <!-- Редактирование -->
                         <a href="{{ url_for('main.edit_user', user_id=u.id) }}" class="btn">Изменить</a>
 
                         {% if u.role != 'admin' %}
+                            <!-- Блокировка / разблокировка -->
                             {% if u.role != 'blocked' %}
                                 <form action="{{ url_for('main.block_user', user_id=u.id) }}"
                                       method="post" style="display:inline;">
@@ -54,6 +57,7 @@
                                 </form>
                             {% endif %}
 
+                            <!-- Удаление -->
                             <form action="{{ url_for('main.delete_user_route', user_id=u.id) }}"
                                   method="post" style="display:inline;"
                                   onsubmit="return confirm('Удалить пользователя {{ u.fio }}?');">
@@ -81,12 +85,13 @@
         <a href="{{ url_for('main.admin_feedback') }}" class="btn">Обращения пользователей</a>
     </div>
 
+{# ================== СОТРУДНИК НАУЧНОГО ОТДЕЛА (staff) ================== #}
 {% elif user.role == 'staff' %}
 
     <hr>
     <h3>Инструменты сотрудника научного отдела</h3>
 
-    <p>Здесь доступны операции по проверке и контролю публикаций.</p>
+    <p>Доступны функции проверки публикаций, контроля доработок и экспорта отчётов.</p>
 
     <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; margin-bottom:15px;">
         <a href="{{ url_for('main.publications') }}" class="btn">Список всех публикаций</a>
@@ -122,13 +127,7 @@
                             {{ p.status }}
                         {% endif %}
                     </td>
-                    <td>
-                        {% if p.revision_deadline %}
-                            {{ p.revision_deadline }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
+                    <td>{{ p.revision_deadline or '—' }}</td>
                     <td>{{ p.review_comment or '' }}</td>
                 </tr>
                 {% endfor %}
@@ -138,6 +137,69 @@
         <p>Сейчас нет публикаций, отправленных на доработку.</p>
     {% endif %}
 
+{# ================== ПРЕПОДАВАТЕЛЬ ================== #}
+{% elif user.role == 'lecturer' %}
+
+    <hr>
+    <h3>Мои публикации</h3>
+
+    {% if not lecturer_info %}
+        <p style="color:red;">
+            Для вашей учётной записи не найден связанный преподаватель в справочнике.<br>
+            Связь выполняется через поле <code>lecturer_id</code> в таблице пользователей.
+        </p>
+    {% else %}
+        <p>
+            <b>Преподаватель:</b> {{ lecturer_info.fio }}<br>
+            <b>Кафедра:</b> {{ lecturer_info.department }}<br>
+            <b>Должность:</b> {{ lecturer_info.position }}
+        </p>
+
+        {% if lecturer_pubs and lecturer_pubs|length > 0 %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Название</th>
+                        <th>Год</th>
+                        <th>Журнал</th>
+                        <th>Статус</th>
+                        <th>Крайний срок доработки</th>
+                        <th>Комментарий сотрудника НО</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in lecturer_pubs %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ p.title }}</td>
+                        <td>{{ p.year }}</td>
+                        <td>{{ p.journal }}</td>
+                        <td>
+                            {% if not p.status or p.status == 'new' %}
+                                Новая
+                            {% elif p.status == 'approved' %}
+                                Утверждена
+                            {% elif p.status == 'rejected' %}
+                                Отклонена
+                            {% elif p.status == 'revision_required' %}
+                                На доработке
+                            {% else %}
+                                {{ p.status }}
+                            {% endif %}
+                        </td>
+                        <td>{{ p.revision_deadline or '—' }}</td>
+                        <td>{{ p.review_comment or '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>За вами пока не закреплено ни одной публикации.</p>
+        {% endif %}
+    {% endif %}
+
+{# ================== ПРОЧИЕ РОЛИ / ПО УМОЛЧАНИЮ ================== #}
 {% else %}
 
     <hr>
