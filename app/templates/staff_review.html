@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Проверка публикаций{% endblock %}
+
+{% block content %}
+<h2>Проверка и утверждение публикаций</h2>
+
+<p>
+    Здесь сотрудник научного отдела может просматривать все публикации,
+    утверждать их, отклонять или отправлять на доработку с указанием срока.
+</p>
+
+{% if pubs and pubs|length > 0 %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Название</th>
+                <th>Год</th>
+                <th>Журнал</th>
+                <th>Статус</th>
+                <th>Крайний срок доработки</th>
+                <th>Комментарий</th>
+                <th style="width: 260px;">Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in pubs %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ p.title }}</td>
+                <td>{{ p.year }}</td>
+                <td>{{ p.journal }}</td>
+                <td>
+                    {% if p.status == 'approved' %}
+                        Утверждена
+                    {% elif p.status == 'rejected' %}
+                        Отклонена
+                    {% elif p.status == 'revision_required' %}
+                        На доработке
+                    {% elif p.status == 'new' or not p.status %}
+                        Новая
+                    {% else %}
+                        {{ p.status }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if p.revision_deadline %}
+                        {% if p.revision_deadline < today %}
+                            <span style="color:red;">{{ p.revision_deadline }} (просрочено)</span>
+                        {% else %}
+                            <span style="color:green;">{{ p.revision_deadline }}</span>
+                        {% endif %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ p.review_comment or '' }}</td>
+                <td>
+                    <!-- Утвердить -->
+                    <form action="{{ url_for('main.staff_approve_publication', pub_id=p.id) }}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn">Утвердить</button>
+                    </form>
+
+                    <!-- Отклонить -->
+                    <form action="{{ url_for('main.staff_reject_publication', pub_id=p.id) }}"
+                          method="post" style="display:inline;">
+                        <input type="text" name="comment" placeholder="Причина" style="width:100px; margin-bottom:4px;">
+                        <button type="submit" class="btn">Отклонить</button>
+                    </form>
+
+                    <!-- На доработку -->
+                    <form action="{{ url_for('main.staff_send_to_revision', pub_id=p.id) }}"
+                          method="post" style="display:inline;">
+                        <input type="date" name="revision_deadline" style="width:135px; margin-bottom:4px;">
+                        <input type="text" name="comment" placeholder="Комментарий" style="width:120px; margin-bottom:4px;">
+                        <button type="submit" class="btn">На доработку</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Публикаций пока нет.</p>
+{% endif %}
+
+<hr>
+<a href="{{ url_for('main.profile') }}">← Вернуться в личный кабинет</a>
+
+{% endblock %}
