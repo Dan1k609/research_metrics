@@ -5,14 +5,33 @@
 <h2>Управление FAQ</h2>
 
 <p>
-    На этой странице администратор может добавлять, изменять и удалять вопросы,
+    На этой странице администратор может добавлять и удалять вопросы,
     которые отображаются пользователям в разделе «FAQ».
 </p>
 
-<div style="margin-bottom: 15px;">
-    <!-- Кнопка добавления нового FAQ -->
-    <a href="{{ url_for('main.add_faq') }}" class="btn">Добавить вопрос</a>
-</div>
+<hr>
+
+<h3>Добавить новый вопрос</h3>
+
+<form method="post" action="{{ url_for('main.admin_faq') }}" style="max-width: 600px;">
+    <div style="margin-bottom: 10px;">
+        <label for="question"><b>Вопрос *</b></label><br>
+        <textarea id="question" name="question" rows="2" required
+                  style="width: 100%;">{{ request.form.question or '' }}</textarea>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label for="answer"><b>Ответ *</b></label><br>
+        <textarea id="answer" name="answer" rows="4" required
+                  style="width: 100%;">{{ request.form.answer or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn">Сохранить вопрос</button>
+</form>
+
+<hr>
+
+<h3>Список вопросов FAQ</h3>
 
 {% if faqs and faqs|length > 0 %}
     <table class="table">
@@ -21,27 +40,18 @@
                 <th style="width: 50px;">#</th>
                 <th style="width: 35%;">Вопрос</th>
                 <th>Ответ</th>
-                <th style="width: 200px;">Действия</th>
+                <th style="width: 150px;">Действия</th>
             </tr>
         </thead>
         <tbody>
             {% for item in faqs %}
             <tr>
                 <td>{{ loop.index }}</td>
+                <td><strong>{{ item['question'] }}</strong></td>
+                <td>{{ item['answer'] }}</td>
                 <td>
-                    <strong>{{ item['question'] }}</strong>
-                </td>
-                <td>
-                    {{ item['answer'] }}
-                </td>
-                <td>
-                    <!-- Редактирование FAQ -->
-                    <a href="{{ url_for('main.edit_faq', faq_id=item['id']) }}" class="btn">
-                        Редактировать
-                    </a>
-
-                    <!-- Удаление FAQ (POST) -->
-                    <form action="{{ url_for('main.delete_faq', faq_id=item['id']) }}"
+                    <!-- Удаление FAQ -->
+                    <form action="{{ url_for('main.delete_faq_route', faq_id=item['id']) }}"
                           method="post"
                           style="display:inline;"
                           onsubmit="return confirm('Удалить этот вопрос из FAQ?');">
