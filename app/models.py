@@ -201,6 +201,38 @@ def delete_publication(pub_id):
     db.execute("DELETE FROM publications WHERE id = ?", (pub_id,))
     db.commit()
 
+def update_publication_status(pub_id, status, review_comment=None, revision_deadline=None, reviewer_id=None):
+    """
+    Обновить статус публикации:
+    status: 'new', 'approved', 'rejected', 'revision_required'
+    """
+    db = get_db()
+    db.execute(
+        "UPDATE publications SET status = ?, review_comment = ?, revision_deadline = ?, reviewer_id = ? WHERE id = ?",
+        (status, review_comment, revision_deadline, reviewer_id, pub_id)
+    )
+    db.commit()
+
+
+def get_publications_for_review():
+    """
+    Публикации для проверки сотрудником научного отдела.
+    Можно фильтровать по статусу, но пока отдадим все.
+    """
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM publications ORDER BY year DESC, id DESC"
+    ).fetchall()
+
+
+def get_publications_with_revision_required():
+    """
+    Публикации, отправленные на доработку (контроль сроков).
+    """
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM publications WHERE status = 'revision_required' ORDER BY revision_deadline"
+    ).fetchall()
 
 # ==== METRICS ====
 def set_metrics(lecturer_id, year, total_publications, total_citations, h_index, rinz, scopus, wos, gs):
