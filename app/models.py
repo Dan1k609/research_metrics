@@ -234,6 +234,22 @@ def get_publications_with_revision_required():
         "SELECT * FROM publications WHERE status = 'revision_required' ORDER BY revision_deadline"
     ).fetchall()
 
+def get_lecturer_for_user(user_id):
+    """
+    Находим преподавателя, связанного с пользователем через поле users.lecturer_id.
+    """
+    db = get_db()
+    return db.execute(
+        """
+        SELECT l.*
+        FROM lecturers l
+        JOIN users u ON u.lecturer_id = l.id
+        WHERE u.id = ?
+        """,
+        (user_id,)
+    ).fetchone()
+
+
 # ==== METRICS ====
 def set_metrics(lecturer_id, year, total_publications, total_citations, h_index, rinz, scopus, wos, gs):
     db = get_db()
