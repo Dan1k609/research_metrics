@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Добавить пользователя{% endblock %}
+
+{% block content %}
+<h2>Добавление пользователя</h2>
+
+<p>
+    Заполните данные нового пользователя. После сохранения он появится в списке
+    в личном кабинете администратора.
+</p>
+
+<form method="post" autocomplete="off" style="max-width: 600px;">
+    <div style="margin-bottom: 10px;">
+        <label for="fio"><b>ФИО *</b></label><br>
+        <input type="text" id="fio" name="fio" required
+               value="{{ request.form.fio or '' }}"
+               style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label for="email"><b>Email *</b></label><br>
+        <input type="email" id="email" name="email" required
+               value="{{ request.form.email or '' }}"
+               style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label for="password"><b>Пароль *</b></label><br>
+        <input type="password" id="password" name="password" required
+               style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label for="role"><b>Роль *</b></label><br>
+        <select id="role" name="role" required style="width: 100%;">
+            <option value="" disabled {% if not request.form.role %}selected{% endif %}>Выберите роль</option>
+            <option value="admin"  {% if request.form.role == 'admin' %}selected{% endif %}>Администратор</option>
+            <option value="staff"  {% if request.form.role == 'staff' %}selected{% endif %}>Сотрудник</option>
+            <option value="blocked" {% if request.form.role == 'blocked' %}selected{% endif %}>Заблокирован</option>
+        </select>
+    </div>
+
+    <div style="margin-top: 15px;">
+        <button type="submit" class="btn">Создать пользователя</button>
+        <a href="{{ url_for('main.profile') }}" class="btn">Отмена</a>
+    </div>
+</form>
+
+{% endblock %}
