@@ -106,6 +106,39 @@ def create_tables(conn):
     """)
     conn.commit()
 
+    # Таблица публикаций
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS publications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            year INTEGER,
+            journal TEXT,
+            source TEXT,
+            link TEXT,
+            citations INTEGER,
+            doi TEXT
+        )
+    """)
+
+    # --- Новые поля статуса публикации и доработки ---
+    import sqlite3
+    try:
+        c.execute("ALTER TABLE publications ADD COLUMN status TEXT DEFAULT 'new'")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE publications ADD COLUMN review_comment TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE publications ADD COLUMN revision_deadline TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE publications ADD COLUMN reviewer_id INTEGER")
+    except sqlite3.OperationalError:
+        pass
+
 def insert_test_data(conn):
     c = conn.cursor()
 
