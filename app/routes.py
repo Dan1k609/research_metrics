@@ -354,6 +354,59 @@ def profile():
         users = get_all_users()
     return render_template('profile.html', user=user, users=users)
 
+# --- Управление пользователями ---
+@bp.route('/admin/add_user', methods=['GET', 'POST'])
+@login_required(role='admin')
+def add_user():
+    if request.method == 'POST':
+        fio = request.form['fio']
+        email = request.form['email']
+        password = request.form['password']
+        role = request.form['role']
+        if fio and email and password and role:
+            create_user(fio, email, password, role)
+            flash('Пользователь добавлен')
+            return redirect(url_for('main.profile'))
+        else:
+            flash('Заполните все поля')
+    return render_template('add_user.html')
+
+@bp.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
+@login_required(role='admin')
+def edit_user(user_id):
+    user = get_user_by_id(user_id)
+    if request.method == 'POST':
+        fio = request.form['fio']
+        email = request.form['email']
+        role = request.form['role']
+        update_user(user_id, fio, email, role)
+        flash('Данные пользователя обновлены')
+        return redirect(url_for('main.profile'))
+    return render_template('edit_user.html', user=user)
+
+@bp.route('/admin/block_user/<int:user_id>', methods=['POST'])
+@login_required(role='admin')
+def block_user(user_id):
+    user = get_user_by_id(user_id)
+    update_user(user_id, user['fio'], user['email'], 'blocked')
+    flash('Пользователь заблокирован')
+    return redirect(url_for('main.profile'))
+
+@bp.route('/admin/unblock_user/<int:user_id>', methods=['POST'])
+@login_required(role='admin')
+def unblock_user(user_id):
+    user = get_user_by_id(user_id)
+    update_user(user_id, user['fio'], user['email'], 'staff')
+    flash('Пользователь разблокирован')
+    return redirect(url_for('main.profile'))
+
+@bp.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required(role='admin')
+def delete_user_route(user_id):
+    delete_user(user_id)
+    flash('Пользователь удалён')
+    return redirect(url_for('main.profile'))
+
 # --- Функции для работы с обратной связью ---
 
 def create_feedback(name, email, message):
