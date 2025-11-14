@@ -53,10 +53,13 @@
         {% if breadcrumbs %}
         <nav class="breadcrumbs" style="margin-bottom:10px; font-size:0.9em;">
             {% for bc in breadcrumbs %}
-                {% if not loop.last %}
-                    <a href="{{ bc.url }}">{{ bc.title }}</a> &raquo;
+                {# Поддерживаем оба варианта: ('Название', url) ИЛИ {'title':..., 'url':...} #}
+                {% set title = bc.title if bc.title is defined else bc[0] %}
+                {% set url = bc.url if bc.url is defined else bc[1] %}
+                {% if not loop.last and url %}
+                    <a href="{{ url }}">{{ title }}</a> &raquo;
                 {% else %}
-                    <span>{{ bc.title }}</span>
+                    <span>{{ title }}</span>
                 {% endif %}
             {% endfor %}
         </nav>
