@@ -48,6 +48,20 @@
         {% for message in get_flashed_messages() %}
             <div class="flash">{{ message }}</div>
         {% endfor %}
+
+        {# Хлебные крошки: цепочка навигации, если переданы в шаблон #}
+        {% if breadcrumbs %}
+        <nav class="breadcrumbs" style="margin-bottom:10px; font-size:0.9em;">
+            {% for bc in breadcrumbs %}
+                {% if not loop.last %}
+                    <a href="{{ bc.url }}">{{ bc.title }}</a> &raquo;
+                {% else %}
+                    <span>{{ bc.title }}</span>
+                {% endif %}
+            {% endfor %}
+        </nav>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </div>
 </body>
