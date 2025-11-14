@@ -225,13 +225,16 @@ def update_publication_status(pub_id, status, review_comment=None, revision_dead
 
 def get_publications_for_review():
     """
-    Публикации для проверки сотрудником научного отдела.
-    Пока просто все, можно фильтровать по статусу.
+    Публикации для проверки сотрудником научного отдела:
+    - только новые и отправленные повторно после доработки.
     """
     db = get_db()
     return db.execute(
-        "SELECT * FROM publications ORDER BY year DESC, id DESC"
+        "SELECT * FROM publications "
+        "WHERE status IN ('new', 'revision_required') "
+        "ORDER BY year DESC, id DESC"
     ).fetchall()
+
 
 
 def get_publications_with_revision_required():
