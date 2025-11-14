@@ -9,7 +9,7 @@
     <b>{{ lecturer.fio }}</b> и отправлена на проверку сотруднику научного отдела.
 </p>
 
-<form method="post" class="form">
+<form method="post" class="form" enctype="multipart/form-data">
 
     <div class="form-group" style="margin-bottom: 10px;">
         <label for="title">Название публикации *</label><br>
@@ -44,6 +44,14 @@
     <div class="form-group" style="margin-bottom: 15px;">
         <label for="doi">DOI</label><br>
         <input type="text" id="doi" name="doi" style="width: 100%;">
+    </div>
+
+    <div class="form-group" style="margin-bottom: 15px;">
+        <label for="file">Файл публикации (PDF, DOCX и др.)</label><br>
+        <input type="file" id="file" name="file">
+        <p style="font-size: 0.9em; color: #555; margin-top: 5px;">
+            Файл будет сохранён в папке проекта и доступен сотруднику научного отдела для просмотра.
+        </p>
     </div>
 
     <div style="margin-top: 15px;">
