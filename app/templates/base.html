@@ -52,12 +52,11 @@
         {# Хлебные крошки: цепочка навигации, если переданы в шаблон #}
         {% if breadcrumbs %}
         <nav class="breadcrumbs" style="margin-bottom:10px; font-size:0.9em;">
-            {% for title, url in breadcrumbs %}
-                {% if url %}
-                    <a href="{{ url }}">{{ title }}</a>
-                    {% if not loop.last %}&raquo;{% endif %}
+            {% for bc in breadcrumbs %}
+                {% if not loop.last %}
+                    <a href="{{ bc.url }}">{{ bc.title }}</a> &raquo;
                 {% else %}
-                    <span>{{ title }}</span>
+                    <span>{{ bc.title }}</span>
                 {% endif %}
             {% endfor %}
         </nav>
@@ -65,5 +64,10 @@
 
         {% block content %}{% endblock %}
     </div>
+
+    <footer class="footer">
+        Разработчик: студент ЧОУ ВО «МУ им. С.Ю. Витте»<br>
+        <b>Мирошниченко Данила Романович</b>
+    </footer>
 </body>
 </html>
