@@ -1,15 +1,16 @@
 import csv
 from io import StringIO
+from datetime import date
+
 from flask import Response
 from flask import Blueprint, render_template, redirect, url_for, request, session, flash, g
 from app.models import *
 from functools import wraps
-from datetime import date
-
 
 bp = Blueprint('main', __name__)
 
 # --- Авторизация и контроль доступа ---
+
 
 def login_required(role=None):
     def decorator(f):
@@ -21,13 +22,17 @@ def login_required(role=None):
                 flash('Нет доступа')
                 return redirect(url_for('main.dashboard'))
             return f(*args, **kwargs)
+
         return decorated_function
+
     return decorator
+
 
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
     g.user = get_user_by_id(user_id) if user_id else None
+
 
 # --- Аутентификация ---
 
@@ -43,12 +48,14 @@ def login():
         flash('Неверный email или пароль')
     return render_template('login.html')
 
+
 @bp.route('/logout')
 @login_required()
 def logout():
     log_action(session['user_id'], "logout", "Выход из системы")
     session.clear()
     return redirect(url_for('main.login'))
+
 
 # --- Дашборд и главная страница ---
 
@@ -64,7 +71,9 @@ def dashboard():
     feedback_list = []
     if g.user and g.user['role'] == 'admin':
         feedback_list = get_all_feedback()
-    return render_template('dashboard.html', lecturers=lecturers, pubs=pubs, metrics=metrics, feedback_list=feedback_list)
+    return render_template('dashboard.html', lecturers=lecturers, pubs=pubs,
+                           metrics=metrics, feedback_list=feedback_list)
+
 
 @bp.route('/admin/export_dashboard')
 @login_required(role='admin')
@@ -81,14 +90,16 @@ def export_dashboard():
     writer.writerow(['Преподаватели'])
     writer.writerow(['ID', 'ФИО', 'Кафедра', 'Должность', 'Учёная степень', 'ORCID', 'Email'])
     for l in lecturers:
-        writer.writerow([l['id'], l['fio'], l['department'], l['position'], l['academic_degree'], l['orcid'], l['email']])
+        writer.writerow(
+            [l['id'], l['fio'], l['department'], l['position'], l['academic_degree'], l['orcid'], l['email']])
     writer.writerow([])
 
     # --- Публикации ---
     writer.writerow(['Публикации'])
     writer.writerow(['ID', 'Название', 'Год', 'Журнал', 'Источник', 'Ссылка', 'Цитирования', 'DOI'])
     for p in pubs:
-        writer.writerow([p['id'], p['title'], p['year'], p['journal'], p['source'], p['link'], p['citations'], p['doi']])
+        writer.writerow(
+            [p['id'], p['title'], p['year'], p['journal'], p['source'], p['link'], p['citations'], p['doi']])
     writer.writerow([])
 
     # --- Обращения пользователей ---
@@ -106,6 +117,7 @@ def export_dashboard():
         headers={"Content-Disposition": "attachment;filename=dashboard_export.csv"}
     )
 
+
 # --- Форма обратной связи ---
 
 @bp.route('/feedback', methods=['GET', 'POST'])
@@ -122,6 +134,7 @@ def feedback():
             flash("Пожалуйста, заполните все поля.")
     return render_template('feedback.html')
 
+
 # --- Просмотр обращений администратора ---
 
 @bp.route('/admin/feedback')
@@ -130,6 +143,7 @@ def admin_feedback():
     feedback_list = get_all_feedback()
     return render_template('admin_feedback.html', feedbacks=feedback_list)
 
+
 # --- Преподаватели (Открытые страницы) ---
 
 @bp.route('/lecturers')
@@ -137,12 +151,14 @@ def lecturers():
     lecturers = get_all_lecturers()
     return render_template('lecturers.html', lecturers=lecturers)
 
+
 @bp.route('/lecturer/<int:lecturer_id>')
 def lecturer_profile(lecturer_id):
     lecturer = get_lecturer_by_id(lecturer_id)
     pubs = get_publications_by_lecturer(lecturer_id)
     metrics = get_metrics_by_lecturer(lecturer_id)
     return render_template('lecturer_profile.html', lecturer=lecturer, pubs=pubs, metrics=metrics)
+
 
 @bp.route('/add_lecturer', methods=['GET', 'POST'])
 @login_required(role='admin')
@@ -155,6 +171,7 @@ def add_lecturer():
         log_action(session['user_id'], "add_lecturer", f"Добавлен преподаватель: {request.form['fio']}")
         return redirect(url_for('main.lecturers'))
     return render_template('add_lecturer.html')
+
 
 @bp.route('/edit_lecturer/<int:lecturer_id>', methods=['GET', 'POST'])
 @login_required(role='admin')
@@ -170,6 +187,7 @@ def edit_lecturer(lecturer_id):
         return redirect(url_for('main.lecturers'))
     return render_template('edit_lecturer.html', lecturer=lecturer)
 
+
 @bp.route('/delete_lecturer/<int:lecturer_id>', methods=['POST'])
 @login_required(role='admin')
 def delete_lecturer_route(lecturer_id):
@@ -178,12 +196,14 @@ def delete_lecturer_route(lecturer_id):
     log_action(session['user_id'], "delete_lecturer", f"Удалён преподаватель: {lecturer['fio']}")
     return redirect(url_for('main.lecturers'))
 
+
 # --- Публикации (Открытая страница) ---
 
 @bp.route('/publications')
 def publications():
     pubs = get_all_publications()
     return render_template('publications.html', pubs=pubs)
+
 
 @bp.route('/add_publication', methods=['GET', 'POST'])
 @login_required(role='admin')
@@ -199,6 +219,7 @@ def add_publication():
         log_action(session['user_id'], "add_publication", f"Добавлена публикация: {request.form['title']}")
         return redirect(url_for('main.publications'))
     return render_template('add_publication.html', lecturers=lecturers)
+
 
 @bp.route('/edit_publication/<int:pub_id>', methods=['GET', 'POST'])
 @login_required(role='admin')
@@ -218,6 +239,7 @@ def edit_publication(pub_id):
         return redirect(url_for('main.publications'))
     return render_template('edit_publication.html', pub=pub, lecturers=lecturers, current_ids=current_ids)
 
+
 @bp.route('/delete_publication/<int:pub_id>', methods=['POST'])
 @login_required(role='admin')
 def delete_publication_route(pub_id):
@@ -226,13 +248,14 @@ def delete_publication_route(pub_id):
     log_action(session['user_id'], "delete_publication", f"Удалена публикация: {pub['title']}")
     return redirect(url_for('main.publications'))
 
+
 # --- Метрики ---
 
 @bp.route('/metrics/<int:lecturer_id>', methods=['GET', 'POST'])
 @login_required(role='admin')
 def metrics(lecturer_id):
     lecturer = get_lecturer_by_id(lecturer_id)
-    metrics = get_metrics_by_lecturer(lecturer_id)
+    metrics_data = get_metrics_by_lecturer(lecturer_id)
     if request.method == 'POST':
         set_metrics(
             lecturer_id,
@@ -247,7 +270,8 @@ def metrics(lecturer_id):
         )
         log_action(session['user_id'], "edit_metrics", f"Обновлены метрики: {lecturer['fio']} ({request.form['year']})")
         return redirect(url_for('main.lecturer_profile', lecturer_id=lecturer_id))
-    return render_template('metrics.html', lecturer=lecturer, metrics=metrics)
+    return render_template('metrics.html', lecturer=lecturer, metrics=metrics_data)
+
 
 # --- Отчёты (Открытая страница) ---
 
@@ -267,6 +291,7 @@ def reports():
         departments[dep]['citations'] += sum([int(p['citations']) for p in pubs_by_l if p['citations']])
     return render_template('reports.html', departments=departments, pubs=pubs)
 
+
 # --- Логи ---
 
 @bp.route('/log')
@@ -275,12 +300,14 @@ def log():
     logs = get_all_logs()
     return render_template('log.html', logs=logs)
 
+
 # --- Новости ---
 
 @bp.route('/news')
 def news_list():
     news = get_all_news()
     return render_template('news.html', news=news)
+
 
 @bp.route('/news/<int:news_id>')
 def news_detail(news_id):
@@ -290,12 +317,14 @@ def news_detail(news_id):
         return redirect(url_for('main.news_list'))
     return render_template('news_detail.html', news=news)
 
+
 # --- FAQ ---
 
 @bp.route('/faq')
 def faq():
     faqs = get_all_faq()
     return render_template('faq.html', faqs=faqs)
+
 
 # --- Админ-панель: Новости ---
 
@@ -314,12 +343,14 @@ def admin_news():
             flash('Заполните все поля.')
     return render_template('admin_news.html', news=news)
 
+
 @bp.route('/admin/news/delete/<int:news_id>', methods=['POST'])
 @login_required(role='admin')
 def delete_news_route(news_id):
     delete_news(news_id)
     flash('Новость удалена.')
     return redirect(url_for('main.admin_news'))
+
 
 # --- Админ-панель: FAQ ---
 
@@ -338,6 +369,7 @@ def admin_faq():
             flash('Заполните оба поля.')
     return render_template('admin_faq.html', faqs=faqs)
 
+
 @bp.route('/admin/faq/delete/<int:faq_id>', methods=['POST'])
 @login_required(role='admin')
 def delete_faq_route(faq_id):
@@ -345,27 +377,26 @@ def delete_faq_route(faq_id):
     flash('Вопрос удалён.')
     return redirect(url_for('main.admin_faq'))
 
+
+# --- Личный кабинет ---
+
 @bp.route('/profile')
 @login_required()
 def profile():
     user = g.user
 
-    users = []             # для админа
-    pending_pubs = []      # для staff (если нужно)
-    revision_pubs = []     # для staff (контроль доработок)
-    lecturer_info = None   # для преподавателя
-    lecturer_pubs = []     # его публикации
+    users = []            # для админа
+    pending_pubs = []     # для staff (публикации для проверки)
+    revision_pubs = []    # для staff (контроль доработок)
+    lecturer_info = None  # для преподавателя
+    lecturer_pubs = []    # публикации преподавателя
 
     if user['role'] == 'admin':
         users = get_all_users()
 
     elif user['role'] == 'staff':
-        try:
-            pending_pubs = get_publications_for_review()
-            revision_pubs = get_publications_with_revision_required()
-        except NameError:
-            pending_pubs = []
-            revision_pubs = []
+        pending_pubs = get_publications_for_review()
+        revision_pubs = get_publications_with_revision_required()
 
     elif user['role'] == 'lecturer':
         lecturer_info = get_lecturer_for_user(user['id'])
@@ -383,8 +414,8 @@ def profile():
     )
 
 
-
 # --- Управление пользователями ---
+
 @bp.route('/admin/add_user', methods=['GET', 'POST'])
 @login_required(role='admin')
 def add_user():
@@ -401,6 +432,7 @@ def add_user():
             flash('Заполните все поля')
     return render_template('add_user.html')
 
+
 @bp.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @login_required(role='admin')
 def edit_user(user_id):
@@ -414,6 +446,7 @@ def edit_user(user_id):
         return redirect(url_for('main.profile'))
     return render_template('edit_user.html', user=user)
 
+
 @bp.route('/admin/block_user/<int:user_id>', methods=['POST'])
 @login_required(role='admin')
 def block_user(user_id):
@@ -421,6 +454,7 @@ def block_user(user_id):
     update_user(user_id, user['fio'], user['email'], 'blocked')
     flash('Пользователь заблокирован')
     return redirect(url_for('main.profile'))
+
 
 @bp.route('/admin/unblock_user/<int:user_id>', methods=['POST'])
 @login_required(role='admin')
@@ -430,12 +464,14 @@ def unblock_user(user_id):
     flash('Пользователь разблокирован')
     return redirect(url_for('main.profile'))
 
+
 @bp.route('/admin/delete_user/<int:user_id>', methods=['POST'])
 @login_required(role='admin')
 def delete_user_route(user_id):
     delete_user(user_id)
     flash('Пользователь удалён')
     return redirect(url_for('main.profile'))
+
 
 # --- Кабинет сотрудника научного отдела: проверка публикаций ---
 
@@ -445,6 +481,7 @@ def staff_review():
     pubs = get_publications_for_review()
     today = date.today().isoformat()  # 'YYYY-MM-DD'
     return render_template('staff_review.html', pubs=pubs, today=today)
+
 
 @bp.route('/staff/publication/<int:pub_id>/approve', methods=['POST'])
 @login_required(role='staff')
@@ -490,6 +527,8 @@ def staff_send_to_revision(pub_id):
     )
     flash('Публикация отправлена на доработку')
     return redirect(url_for('main.staff_review'))
+
+
 @bp.route('/staff/export_reports')
 @login_required(role='staff')
 def staff_export_reports():
@@ -504,8 +543,6 @@ def staff_export_reports():
     ])
 
     for p in pubs:
-        # sqlite3.Row, поэтому доступ через [].
-        # Поля status/revision_deadline/review_comment будут, если ты прогнал create_tables().
         status = p['status'] if 'status' in p.keys() else ''
         deadline = p['revision_deadline'] if 'revision_deadline' in p.keys() else ''
         comment = p['review_comment'] if 'review_comment' in p.keys() else ''
@@ -530,7 +567,106 @@ def staff_export_reports():
     )
 
 
-# --- Функции для работы с обратной связью ---
+@bp.route('/lecturer/add_publication', methods=['GET', 'POST'])
+@login_required(role='lecturer')
+def lecturer_add_publication():
+    """
+    Добавление публикации из личного кабинета преподавателя.
+    Публикация автоматически привязывается к текущему преподавателю
+    и уходит со статусом 'new' на проверку сотруднику НО.
+    """
+    user = g.user
+    lecturer = get_lecturer_for_user(user['id'])
+    if not lecturer:
+        flash('Для вашей учётной записи не найден преподаватель в справочнике.')
+        return redirect(url_for('main.profile'))
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        year = request.form.get('year') or None
+        journal = request.form.get('journal')
+        source = request.form.get('source')
+        link = request.form.get('link')
+        citations = request.form.get('citations') or 0
+        doi = request.form.get('doi')
+
+        if not title or not year:
+            flash('Заполните как минимум название и год публикации.')
+            return redirect(url_for('main.lecturer_add_publication'))
+
+        try:
+            year_int = int(year)
+        except ValueError:
+            flash('Год публикации должен быть числом.')
+            return redirect(url_for('main.lecturer_add_publication'))
+
+        try:
+            citations_int = int(citations)
+        except ValueError:
+            citations_int = 0
+
+        # создаём публикацию и привязываем только к этому преподавателю
+        create_publication(
+            title,
+            year_int,
+            journal,
+            source,
+            link,
+            citations_int,
+            doi,
+            [lecturer['id']]
+        )
+        # status по умолчанию 'new'
+        log_action(user['id'], 'add_publication_by_lecturer', f"Преподаватель добавил публикацию: {title}")
+        flash('Публикация добавлена и отправлена на проверку сотруднику научного отдела.')
+        return redirect(url_for('main.profile'))
+
+    return render_template('lecturer_add_publication.html', lecturer=lecturer)
+
+@bp.route('/lecturer/publication/<int:pub_id>/resubmit', methods=['POST'])
+@login_required(role='lecturer')
+def lecturer_resubmit_publication(pub_id):
+    """
+    Преподаватель повторно отправляет публикацию на проверку
+    после доработки (статус был 'revision_required').
+    """
+    user = g.user
+    lecturer = get_lecturer_for_user(user['id'])
+    if not lecturer:
+        flash('Для вашей учётной записи не найден преподаватель в справочнике.')
+        return redirect(url_for('main.profile'))
+
+    db = get_db()
+    # проверяем, что эта публикация действительно относится к данному преподавателю
+    owns = db.execute(
+        "SELECT 1 FROM lecturer_publications WHERE lecturer_id = ? AND publication_id = ?",
+        (lecturer['id'], pub_id)
+    ).fetchone()
+    if not owns:
+        flash('Вы не можете отправить эту публикацию.')
+        return redirect(url_for('main.profile'))
+
+    pub, _ = get_publication_by_id(pub_id)
+    if not pub:
+        flash('Публикация не найдена.')
+        return redirect(url_for('main.profile'))
+
+    if pub['status'] != 'revision_required':
+        flash('Эта публикация сейчас не числится на доработке.')
+        return redirect(url_for('main.profile'))
+
+    # сбрасываем статус на 'new', комментарий/дедлайн очищаем
+    update_publication_status(
+        pub_id,
+        status='new',
+        review_comment=None,
+        revision_deadline=None,
+        reviewer_id=None
+    )
+    log_action(user['id'], 'resubmit_publication', f"Повторно отправлена публикация: {pub['title']}")
+    flash('Публикация повторно отправлена на проверку.')
+    return redirect(url_for('main.profile'))
+
 
 def create_feedback(name, email, message):
     db = get_db()
@@ -539,6 +675,7 @@ def create_feedback(name, email, message):
         (name, email, message)
     )
     db.commit()
+
 
 def get_all_feedback():
     db = get_db()
