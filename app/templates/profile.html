@@ -169,6 +169,7 @@
                         <th>Название</th>
                         <th>Год</th>
                         <th>Журнал</th>
+                        <th>Файл</th>
                         <th>Статус</th>
                         <th>Крайний срок доработки</th>
                         <th>Комментарий сотрудника НО</th>
@@ -182,6 +183,16 @@
                         <td>{{ p.title }}</td>
                         <td>{{ p.year }}</td>
                         <td>{{ p.journal }}</td>
+                        <td>
+                            {% if p.file_path %}
+                                <a href="{{ url_for('main.download_publication_file', filename=p.file_path) }}"
+                                   target="_blank">
+                                    Открыть файл
+                                </a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                         <td>
                             {% if not p.status or p.status == 'new' %}
                                 Новая
@@ -217,7 +228,6 @@
             <p>За вами пока не закреплено ни одной публикации.</p>
         {% endif %}
     {% endif %}
-
 
 {# ================== ПРОЧИЕ РОЛИ / ПО УМОЛЧАНИЮ ================== #}
 {% else %}
