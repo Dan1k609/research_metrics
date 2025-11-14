@@ -32,7 +32,7 @@ def create_tables(conn):
         )
     """)
 
-    # Таблица публикаций (с полями для статуса и доработок)
+    # Таблица публикаций (с полями для статуса, доработок и файла)
     c.execute("""
         CREATE TABLE IF NOT EXISTS publications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,6 +43,7 @@ def create_tables(conn):
             link TEXT,
             citations INTEGER,
             doi TEXT,
+            file_path TEXT,
             status TEXT DEFAULT 'new',
             review_comment TEXT,
             revision_deadline TEXT,
