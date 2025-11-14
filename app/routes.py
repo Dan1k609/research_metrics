@@ -1,9 +1,23 @@
+import os
 import csv
 from io import StringIO
 from datetime import date
 
-from flask import Response
-from flask import Blueprint, render_template, redirect, url_for, request, session, flash, g
+from flask import (
+    Response,
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    request,
+    session,
+    flash,
+    g,
+    current_app,
+    send_from_directory,
+)
+from werkzeug.utils import secure_filename
+
 from app.models import *
 from functools import wraps
 
@@ -71,8 +85,14 @@ def dashboard():
     feedback_list = []
     if g.user and g.user['role'] == 'admin':
         feedback_list = get_all_feedback()
-    return render_template('dashboard.html', lecturers=lecturers, pubs=pubs,
-                           metrics=metrics, feedback_list=feedback_list)
+    return render_template(
+        'dashboard.html',
+        lecturers=lecturers,
+        pubs=pubs,
+        metrics=metrics,
+        feedback_list=feedback_list,
+        breadcrumbs=[('Главная', None)]
+    )
 
 
 @bp.route('/admin/export_dashboard')
@@ -132,7 +152,10 @@ def feedback():
             return redirect(url_for('main.feedback'))
         else:
             flash("Пожалуйста, заполните все поля.")
-    return render_template('feedback.html')
+    return render_template(
+        'feedback.html',
+        breadcrumbs=[('Обратная связь', None)]
+    )
 
 
 # --- Просмотр обращений администратора ---
@@ -141,7 +164,11 @@ def feedback():
 @login_required(role='admin')
 def admin_feedback():
     feedback_list = get_all_feedback()
-    return render_template('admin_feedback.html', feedbacks=feedback_list)
+    return render_template(
+        'admin_feedback.html',
+        feedbacks=feedback_list,
+        breadcrumbs=[('Обращения пользователей', None)]
+    )
 
 
 # --- Преподаватели (Открытые страницы) ---
@@ -149,7 +176,11 @@ def admin_feedback():
 @bp.route('/lecturers')
 def lecturers():
     lecturers = get_all_lecturers()
-    return render_template('lecturers.html', lecturers=lecturers)
+    return render_template(
+        'lecturers.html',
+        lecturers=lecturers,
+        breadcrumbs=[('Преподаватели', None)]
+    )
 
 
 @bp.route('/lecturer/<int:lecturer_id>')
@@ -157,7 +188,16 @@ def lecturer_profile(lecturer_id):
     lecturer = get_lecturer_by_id(lecturer_id)
     pubs = get_publications_by_lecturer(lecturer_id)
     metrics = get_metrics_by_lecturer(lecturer_id)
-    return render_template('lecturer_profile.html', lecturer=lecturer, pubs=pubs, metrics=metrics)
+    return render_template(
+        'lecturer_profile.html',
+        lecturer=lecturer,
+        pubs=pubs,
+        metrics=metrics,
+        breadcrumbs=[
+            ('Преподаватели', url_for('main.lecturers')),
+            (lecturer['fio'], None)
+        ]
+    )
 
 
 @bp.route('/add_lecturer', methods=['GET', 'POST'])
@@ -170,7 +210,13 @@ def add_lecturer():
         )
         log_action(session['user_id'], "add_lecturer", f"Добавлен преподаватель: {request.form['fio']}")
         return redirect(url_for('main.lecturers'))
-    return render_template('add_lecturer.html')
+    return render_template(
+        'add_lecturer.html',
+        breadcrumbs=[
+            ('Преподаватели', url_for('main.lecturers')),
+            ('Добавление преподавателя', None)
+        ]
+    )
 
 
 @bp.route('/edit_lecturer/<int:lecturer_id>', methods=['GET', 'POST'])
@@ -185,7 +231,14 @@ def edit_lecturer(lecturer_id):
         )
         log_action(session['user_id'], "edit_lecturer", f"Изменён преподаватель: {request.form['fio']}")
         return redirect(url_for('main.lecturers'))
-    return render_template('edit_lecturer.html', lecturer=lecturer)
+    return render_template(
+        'edit_lecturer.html',
+        lecturer=lecturer,
+        breadcrumbs=[
+            ('Преподаватели', url_for('main.lecturers')),
+            ('Редактирование преподавателя', None)
+        ]
+    )
 
 
 @bp.route('/delete_lecturer/<int:lecturer_id>', methods=['POST'])
@@ -202,7 +255,11 @@ def delete_lecturer_route(lecturer_id):
 @bp.route('/publications')
 def publications():
     pubs = get_all_publications()
-    return render_template('publications.html', pubs=pubs)
+    return render_template(
+        'publications.html',
+        pubs=pubs,
+        breadcrumbs=[('Публикации', None)]
+    )
 
 
 @bp.route('/add_publication', methods=['GET', 'POST'])
@@ -218,7 +275,14 @@ def add_publication():
         )
         log_action(session['user_id'], "add_publication", f"Добавлена публикация: {request.form['title']}")
         return redirect(url_for('main.publications'))
-    return render_template('add_publication.html', lecturers=lecturers)
+    return render_template(
+        'add_publication.html',
+        lecturers=lecturers,
+        breadcrumbs=[
+            ('Публикации', url_for('main.publications')),
+            ('Добавление публикации', None)
+        ]
+    )
 
 
 @bp.route('/edit_publication/<int:pub_id>', methods=['GET', 'POST'])
@@ -237,7 +301,16 @@ def edit_publication(pub_id):
         )
         log_action(session['user_id'], "edit_publication", f"Изменена публикация: {request.form['title']}")
         return redirect(url_for('main.publications'))
-    return render_template('edit_publication.html', pub=pub, lecturers=lecturers, current_ids=current_ids)
+    return render_template(
+        'edit_publication.html',
+        pub=pub,
+        lecturers=lecturers,
+        current_ids=current_ids,
+        breadcrumbs=[
+            ('Публикации', url_for('main.publications')),
+            ('Редактирование публикации', None)
+        ]
+    )
 
 
 @bp.route('/delete_publication/<int:pub_id>', methods=['POST'])
@@ -270,7 +343,16 @@ def metrics(lecturer_id):
         )
         log_action(session['user_id'], "edit_metrics", f"Обновлены метрики: {lecturer['fio']} ({request.form['year']})")
         return redirect(url_for('main.lecturer_profile', lecturer_id=lecturer_id))
-    return render_template('metrics.html', lecturer=lecturer, metrics=metrics_data)
+    return render_template(
+        'metrics.html',
+        lecturer=lecturer,
+        metrics=metrics_data,
+        breadcrumbs=[
+            ('Преподаватели', url_for('main.lecturers')),
+            (lecturer['fio'], url_for('main.lecturer_profile', lecturer_id=lecturer_id)),
+            ('Метрики', None)
+        ]
+    )
 
 
 # --- Отчёты (Открытая страница) ---
@@ -289,7 +371,12 @@ def reports():
         pubs_by_l = get_publications_by_lecturer(l['id'])
         departments[dep]['publications'] += len(pubs_by_l)
         departments[dep]['citations'] += sum([int(p['citations']) for p in pubs_by_l if p['citations']])
-    return render_template('reports.html', departments=departments, pubs=pubs)
+    return render_template(
+        'reports.html',
+        departments=departments,
+        pubs=pubs,
+        breadcrumbs=[('Отчёты', None)]
+    )
 
 
 # --- Логи ---
@@ -298,7 +385,11 @@ def reports():
 @login_required(role='admin')
 def log():
     logs = get_all_logs()
-    return render_template('log.html', logs=logs)
+    return render_template(
+        'log.html',
+        logs=logs,
+        breadcrumbs=[('Журнал действий', None)]
+    )
 
 
 # --- Новости ---
@@ -306,7 +397,11 @@ def log():
 @bp.route('/news')
 def news_list():
     news = get_all_news()
-    return render_template('news.html', news=news)
+    return render_template(
+        'news.html',
+        news=news,
+        breadcrumbs=[('Новости', None)]
+    )
 
 
 @bp.route('/news/<int:news_id>')
@@ -315,7 +410,14 @@ def news_detail(news_id):
     if not news:
         flash("Новость не найдена.")
         return redirect(url_for('main.news_list'))
-    return render_template('news_detail.html', news=news)
+    return render_template(
+        'news_detail.html',
+        news=news,
+        breadcrumbs=[
+            ('Новости', url_for('main.news_list')),
+            (news['title'], None)
+        ]
+    )
 
 
 # --- FAQ ---
@@ -323,7 +425,11 @@ def news_detail(news_id):
 @bp.route('/faq')
 def faq():
     faqs = get_all_faq()
-    return render_template('faq.html', faqs=faqs)
+    return render_template(
+        'faq.html',
+        faqs=faqs,
+        breadcrumbs=[('FAQ', None)]
+    )
 
 
 # --- Админ-панель: Новости ---
@@ -341,7 +447,14 @@ def admin_news():
             return redirect(url_for('main.admin_news'))
         else:
             flash('Заполните все поля.')
-    return render_template('admin_news.html', news=news)
+    return render_template(
+        'admin_news.html',
+        news=news,
+        breadcrumbs=[
+            ('Новости', url_for('main.news_list')),
+            ('Администрирование новостей', None)
+        ]
+    )
 
 
 @bp.route('/admin/news/delete/<int:news_id>', methods=['POST'])
@@ -367,7 +480,14 @@ def admin_faq():
             return redirect(url_for('main.admin_faq'))
         else:
             flash('Заполните оба поля.')
-    return render_template('admin_faq.html', faqs=faqs)
+    return render_template(
+        'admin_faq.html',
+        faqs=faqs,
+        breadcrumbs=[
+            ('FAQ', url_for('main.faq')),
+            ('Администрирование FAQ', None)
+        ]
+    )
 
 
 @bp.route('/admin/faq/delete/<int:faq_id>', methods=['POST'])
@@ -410,7 +530,8 @@ def profile():
         pending_pubs=pending_pubs,
         revision_pubs=revision_pubs,
         lecturer_info=lecturer_info,
-        lecturer_pubs=lecturer_pubs
+        lecturer_pubs=lecturer_pubs,
+        breadcrumbs=[('Личный кабинет', None)]
     )
 
 
@@ -430,7 +551,13 @@ def add_user():
             return redirect(url_for('main.profile'))
         else:
             flash('Заполните все поля')
-    return render_template('add_user.html')
+    return render_template(
+        'add_user.html',
+        breadcrumbs=[
+            ('Личный кабинет', url_for('main.profile')),
+            ('Создание пользователя', None)
+        ]
+    )
 
 
 @bp.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
@@ -444,7 +571,14 @@ def edit_user(user_id):
         update_user(user_id, fio, email, role)
         flash('Данные пользователя обновлены')
         return redirect(url_for('main.profile'))
-    return render_template('edit_user.html', user=user)
+    return render_template(
+        'edit_user.html',
+        user=user,
+        breadcrumbs=[
+            ('Личный кабинет', url_for('main.profile')),
+            ('Редактирование пользователя', None)
+        ]
+    )
 
 
 @bp.route('/admin/block_user/<int:user_id>', methods=['POST'])
@@ -480,7 +614,15 @@ def delete_user_route(user_id):
 def staff_review():
     pubs = get_publications_for_review()
     today = date.today().isoformat()  # 'YYYY-MM-DD'
-    return render_template('staff_review.html', pubs=pubs, today=today)
+    return render_template(
+        'staff_review.html',
+        pubs=pubs,
+        today=today,
+        breadcrumbs=[
+            ('Личный кабинет', url_for('main.profile')),
+            ('Проверка публикаций', None)
+        ]
+    )
 
 
 @bp.route('/staff/publication/<int:pub_id>/approve', methods=['POST'])
@@ -567,6 +709,21 @@ def staff_export_reports():
     )
 
 
+# --- Загрузка и просмотр файла публикации ---
+
+@bp.route('/files/publications/<path:filename>')
+def download_publication_file(filename):
+    """
+    Выдача файла публикации из папки uploads/publications.
+    filename — то, что хранится в publications.file_path (мы сохраняем только имя файла).
+    """
+    return send_from_directory(
+        current_app.config['UPLOAD_FOLDER'],
+        filename,
+        as_attachment=False
+    )
+
+
 @bp.route('/lecturer/add_publication', methods=['GET', 'POST'])
 @login_required(role='lecturer')
 def lecturer_add_publication():
@@ -574,6 +731,7 @@ def lecturer_add_publication():
     Добавление публикации из личного кабинета преподавателя.
     Публикация автоматически привязывается к текущему преподавателю
     и уходит со статусом 'new' на проверку сотруднику НО.
+    Здесь же реализована загрузка файла (PDF/DOCX и т.п.).
     """
     user = g.user
     lecturer = get_lecturer_for_user(user['id'])
@@ -589,6 +747,16 @@ def lecturer_add_publication():
         link = request.form.get('link')
         citations = request.form.get('citations') or 0
         doi = request.form.get('doi')
+
+        # Файл публикации
+        uploaded_file = request.files.get('file')
+        file_path = None
+        if uploaded_file and uploaded_file.filename:
+            filename = secure_filename(uploaded_file.filename)
+            save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            uploaded_file.save(save_path)
+            # В БД будем хранить только имя файла
+            file_path = filename
 
         if not title or not year:
             flash('Заполните как минимум название и год публикации.')
@@ -614,14 +782,23 @@ def lecturer_add_publication():
             link,
             citations_int,
             doi,
-            [lecturer['id']]
+            [lecturer['id']],
+            file_path=file_path
         )
         # status по умолчанию 'new'
         log_action(user['id'], 'add_publication_by_lecturer', f"Преподаватель добавил публикацию: {title}")
         flash('Публикация добавлена и отправлена на проверку сотруднику научного отдела.')
         return redirect(url_for('main.profile'))
 
-    return render_template('lecturer_add_publication.html', lecturer=lecturer)
+    return render_template(
+        'lecturer_add_publication.html',
+        lecturer=lecturer,
+        breadcrumbs=[
+            ('Личный кабинет', url_for('main.profile')),
+            ('Добавление публикации', None)
+        ]
+    )
+
 
 @bp.route('/lecturer/publication/<int:pub_id>/resubmit', methods=['POST'])
 @login_required(role='lecturer')
@@ -667,6 +844,8 @@ def lecturer_resubmit_publication(pub_id):
     flash('Публикация повторно отправлена на проверку.')
     return redirect(url_for('main.profile'))
 
+
+# --- Локальные функции работы с обратной связью (как было) ---
 
 def create_feedback(name, email, message):
     db = get_db()
