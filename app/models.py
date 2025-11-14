@@ -133,13 +133,20 @@ def delete_lecturer(lecturer_id):
 
 
 # ==== PUBLICATIONS ====
-def create_publication(title, year, journal, source, link, citations, doi, lecturer_ids):
+def create_publication(title, year, journal, source, link, citations, doi, lecturer_ids, file_path=None):
+    """
+    Создаёт публикацию с привязкой к одному или нескольким преподавателям.
+    file_path — относительный путь к файлу публикации (может быть None).
+    """
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        "INSERT INTO publications (title, year, journal, source, link, citations, doi) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (title, year, journal, source, link, citations, doi)
+        """
+        INSERT INTO publications
+            (title, year, journal, source, link, citations, doi, file_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (title, year, journal, source, link, citations, doi, file_path)
     )
     pub_id = cursor.lastrowid
     # Привязка к преподавателям
@@ -234,7 +241,6 @@ def get_publications_for_review():
         "WHERE status IN ('new', 'revision_required') "
         "ORDER BY year DESC, id DESC"
     ).fetchall()
-
 
 
 def get_publications_with_revision_required():
